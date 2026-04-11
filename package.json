@@ -1,0 +1,20 @@
+{
+  "name": "ux-dashboard-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "workspaces": [
+    "dashboard-fe",
+    "dashboard-be"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace dashboard-be",
+    "worker:events": "npm run worker:events --workspace dashboard-be",
+    "infra:up": "npm run infra:up --workspace dashboard-be",
+    "infra:down": "npm run infra:down --workspace dashboard-be",
+    "infra:logs": "npm run infra:logs --workspace dashboard-be",
+    "test": "npm run test --workspace dashboard-be",
+    "simulate": "npm run simulate --workspace dashboard-be",
+    "load:k6": "npm run load:k6 --workspace dashboard-be"
+  }
+}

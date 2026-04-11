@@ -1,0 +1,23 @@
+node_modules/
+
+# local env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# runtime/generated data
+dashboard-be/data/events.jsonl
+dashboard-be/data/experiments.json
+dashboard-be/data/support_tickets.json
+dashboard-be/data/chat_sessions.json
+dashboard-be/data/chat_events.jsonl
+dashboard-be/data/chat_feedback.json
+dashboard-be/data/users.json
+dashboard-be/data/user_site_access.json
+
+# load test artifacts
+dashboard-be/load/k6-summary.json

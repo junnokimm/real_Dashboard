@@ -1,0 +1,22 @@
+{
+  "name": "ux-sdk-dashboard-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node server.js",
+    "worker:events": "node workers/event-consumer.js",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f kafka redis",
+    "test": "node --test",
+    "simulate": "node scripts/simulate.js",
+    "load:k6": "k6 run load/persona-load.js"
+  },
+  "dependencies": {
+    "@enejwl/ux-sdk": "file:../vendor/enejwl-ux-sdk-0.1.1.tgz",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "kafkajs": "^2.2.4"
+  }
+}

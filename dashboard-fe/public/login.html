@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard Login</title>
+  <style>
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background:#0b1020; color:#f8fafc; }
+    .wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { width:100%; max-width:420px; background:#121a2b; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; box-shadow:0 20px 50px rgba(0,0,0,.35); }
+    h1 { margin:0 0 8px; font-size:24px; }
+    p { margin:0 0 20px; color:#cbd5e1; font-size:14px; }
+    label { display:block; margin:12px 0 6px; font-size:14px; color:#e2e8f0; }
+    input { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#0f172a; color:#fff; }
+    button { width:100%; margin-top:18px; padding:12px 14px; border:none; border-radius:10px; background:#2563eb; color:#fff; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .error { margin-top:14px; min-height:20px; color:#fca5a5; font-size:13px; }
+    .hint { margin-top:18px; font-size:12px; color:#94a3b8; }
+    .mono { font-family: ui-monospace, SFMono-Regular, monospace; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <form class="card" id="loginForm">
+      <h1>Dashboard Login</h1>
+      <p>허용된 계정으로 로그인하면 접근 가능한 <span class="mono">site_id</span>만 dashboard/editor에서 볼 수 있습니다.</p>
+
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+      <button id="loginBtn" type="submit">로그인</button>
+      <div class="error" id="errorBox"></div>
+      <div class="hint">기본 계정은 서버 최초 실행 시 생성됩니다. 운영에서는 환경변수로 바꾸세요.</div>
+    </form>
+  </div>
+  <script src="/login.js"></script>
+</body>
+</html>
