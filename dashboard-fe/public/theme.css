@@ -1,0 +1,40 @@
+/* DESIGN.md — Miro-inspired tokens (Roobert → DM Sans as web-safe display) */
+:root {
+  --color-text: #1c1c1e;
+  --color-text-secondary: #555a6a;
+  --color-placeholder: #a5a8b5;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #fafbfc;
+  --color-surface-muted: #f4f5f8;
+  --color-border: #c7cad5;
+  --color-border-input: #e9eaef;
+  --color-ring: rgb(224, 226, 232);
+  --color-interactive: #5b76fe;
+  --color-interactive-hover: #4a66f0;
+  --color-interactive-pressed: #2a41b6;
+  --color-success: #00b473;
+  --color-danger: #c41e1e;
+  --color-danger-surface: #fbd4d4;
+  --pastel-coral: #ffc6c6;
+  --pastel-teal: #c3faf5;
+  --pastel-teal-dark: #187574;
+  --pastel-orange: #ffe6cd;
+  --pastel-pink: #fde0f0;
+  --pastel-yellow-dark: #746019;
+  --radius-btn: 8px;
+  --radius-input: 8px;
+  --radius-card: 16px;
+  --radius-card-lg: 24px;
+  --radius-pill: 999px;
+  --shadow-ring: 0 0 0 1px var(--color-ring);
+  --shadow-ring-focus: 0 0 0 3px rgba(91, 118, 254, 0.22);
+  --font-display: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-body: "Noto Sans KR", "Noto Sans", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+}

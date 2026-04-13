@@ -3,48 +3,105 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AB Dashboard</title>
+  <title>실험 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/theme.css" />
   <link rel="stylesheet" href="/dashboard.css" />
 </head>
 <body>
+
+  <!-- ===== 상단 바 ===== -->
   <header class="topbar">
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <div class="title">AB Dashboard</div>
-        <div class="subtitle">실험 관리 + A/B Metrics + UX Analysis</div>
+        <div class="title">실험 대시보드</div>
+        <div class="subtitle">실험 운영과 성과, 고객 행동 요약</div>
       </div>
     </div>
 
-    <div class="actions">
-      <label class="muted" for="siteSelect">Site</label>
-      <select id="siteSelect" class="btn" aria-label="Dashboard site selector">
-        <option value="">loading…</option>
+    <div class="topActions">
+      <label class="topLabel" for="siteSelect">대상 사이트</label>
+      <select id="siteSelect" class="selectInput" aria-label="대상 사이트 선택">
+        <option value="">불러오는 중…</option>
       </select>
-      <span class="muted" id="authUserLabel"></span>
-      <button class="btn" id="logoutBtn" type="button">로그아웃</button>
-      <a class="btn" id="topEditorLink" href="/editor">Visual Editor</a>
-      <button class="btn" id="refreshBtn">새로고침</button>
+      <span class="topUser" id="authUserLabel"></span>
+      <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
+      <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
+      <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
+      <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
     </div>
   </header>
 
   <main class="wrap">
+
+    <!-- ===== 1. 요약 카드 (좌상단 = 가장 중요) ===== -->
+    <section class="summaryRow" id="summaryRow">
+      <div class="summaryCard">
+        <div class="summaryLabel">세션 수</div>
+        <div class="summaryValue mono" id="uxTotalSessions">—</div>
+        <div class="summaryHint">이 사이트로 잡힌 방문 세션 합계</div>
+      </div>
+      <div class="summaryCard">
+        <div class="summaryLabel">가장 많은 유형</div>
+        <div class="summaryValue" id="uxTopLabel">—</div>
+        <div class="summaryHint">지금 트래픽에서 비중이 가장 큰 패턴</div>
+      </div>
+      <div class="summaryCard accent">
+        <div class="summaryLabel">긴급 제안</div>
+        <div class="summaryValue mono" id="uxHighPriorityCount">—</div>
+        <div class="summaryHint">‘긴급’으로 표시된 제안 개수</div>
+      </div>
+    </section>
+
+    <!-- ===== 2. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
+    <section class="twoCol">
+      <div class="card">
+        <div class="cardHead">
+          <h2>유형별 비중</h2>
+          <div class="muted">패턴마다 세션이 얼마나 왔는지</div>
+        </div>
+        <div id="labelBars" class="barList">
+          <div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cardHead">
+          <h2>먼저 볼 만한 포인트</h2>
+          <div class="muted">인사이트에서 뽑은 상위 이슈</div>
+        </div>
+        <div id="opportunityList" class="opportunityList">
+          <div class="emptyState">인사이트가 생기면 요약이 여기에 올라옵니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3. 실험 관리 ===== -->
     <section class="card">
       <div class="cardHead">
-        <h2>Experiments</h2>
-        <div class="muted">site_id: <span class="mono" id="siteIdText">legend-ecommerce</span></div>
+        <h2>실험 관리</h2>
+        <div class="muted">사이트 ID <span class="mono" id="siteIdText"></span></div>
       </div>
 
-      <div class="tableWrap">
+      <div id="expEmptyState" class="emptyState" style="display:none;">
+        <div class="emptyIcon">🧪</div>
+        <div class="emptyTitle">아직 실험이 없어요</div>
+        <div class="emptyDesc">편집기에서 화면을 바꾼 뒤 「실제 적용」을 누르면 목록에 올라옵니다.</div>
+        <a class="btnPrimary" id="emptyEditorLink" href="/editor">화면 편집기 열기</a>
+      </div>
+
+      <div class="tableWrap" id="expTableWrap">
         <table class="table" id="expTable">
           <thead>
             <tr>
-              <th>Key</th>
-              <th>Status</th>
-              <th>URL Prefix</th>
-              <th>Version</th>
-              <th>Updated</th>
-              <th style="width:280px;">Actions</th>
+              <th>실험 코드</th>
+              <th>상태</th>
+              <th>적용 페이지</th>
+              <th>버전</th>
+              <th>마지막 수정</th>
+              <th style="width:280px;">작업</th>
             </tr>
           </thead>
           <tbody id="expTbody"></tbody>
@@ -52,291 +109,208 @@
       </div>
     </section>
 
-    <section class="card" id="userManagementCard">
-      <div class="cardHead">
-        <h2>사용자 관리</h2>
-        <div class="muted" id="userCountText">loading…</div>
-      </div>
-
-      <div class="split" style="align-items:start;">
-        <div class="miniCard">
-          <div class="miniTitle">새 대시보드 사용자 만들기</div>
-          <form id="createUserForm">
-            <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
-              <label class="muted" style="display:flex; flex-direction:column; gap:8px;">
-                <span>아이디</span>
-                <input id="userUsernameInput" class="btn" type="text" autocomplete="username" placeholder="예: merch_admin" />
-              </label>
-              <label class="muted" style="display:flex; flex-direction:column; gap:8px;">
-                <span>표시 이름</span>
-                <input id="userDisplayNameInput" class="btn" type="text" autocomplete="name" placeholder="예: 운영 매니저" />
-              </label>
-              <label class="muted" style="display:flex; flex-direction:column; gap:8px; grid-column:1 / -1;">
-                <span>초기 비밀번호</span>
-                <input id="userPasswordInput" class="btn" type="password" autocomplete="new-password" placeholder="최소 8자 이상 권장" />
-              </label>
-            </div>
-
-            <div class="miniTitle" style="margin-top:14px; margin-bottom:8px;">접근 가능한 site_id</div>
-            <div id="userSiteChecklist" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-              <span class="muted">loading…</span>
-            </div>
-
-            <label class="btn" style="font-weight:700; margin-bottom:12px;">
-              <input id="userActiveInput" type="checkbox" checked style="margin:0;" />
-              활성 사용자로 생성
-            </label>
-
-            <div class="btnRow">
-              <button class="btn primary" id="createUserBtn" type="submit">사용자 생성</button>
-              <button class="btn" id="resetUserFormBtn" type="button">선택 초기화</button>
-            </div>
-          </form>
-          <div class="hint" id="userFormStatus">현재 로그인한 운영자에게 허용된 site_id만 선택할 수 있습니다.</div>
-        </div>
-
-        <div class="miniCard">
-          <div class="miniTitle">운영 메모</div>
-          <div class="list">- 새 계정은 same-origin /api/users로 생성됩니다.
-- 접근 site_id는 한 개 이상 선택해야 합니다.
-- 사용자 목록은 생성 직후 자동으로 새로고침됩니다.</div>
-        </div>
-      </div>
-
-      <div class="tableWrap" style="margin-top:12px;">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Display Name</th>
-              <th>상태</th>
-              <th>권한 / Site</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody id="usersTbody">
-            <tr><td colspan="5" class="muted">loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
+    <!-- ===== 4. 실험 성과 (Metrics) — 실험 선택 시 표시 ===== -->
     <section class="card" id="metricsCard" style="display:none;">
       <div class="cardHead">
-        <h2>Metrics</h2>
-        <div class="muted">선택된 실험: <span class="mono" id="metricKey">—</span></div>
+        <h2>실험 결과</h2>
+        <div class="muted">보고 있는 실험 <span class="mono" id="metricKey">—</span></div>
       </div>
 
-      <div class="grid">
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">CVR (Conversions / Sessions) <button class="helpBtn" type="button" aria-expanded="false" aria-label="CVR 설명 보기" data-help-target="help-metric-cvr">?</button></div>
-            <div class="helpPopover" id="help-metric-cvr" role="tooltip">
-              세션 중 얼마나 많은 세션이 목표 전환으로 이어졌는지 보여주는 지표입니다. 값이 높을수록 실험군이 전환에 더 유리하다는 뜻입니다.
-            </div>
-          </div>
-          <div class="miniRow"><div class="pill">A</div><div class="big mono" id="cvrA">—</div></div>
-          <div class="miniRow"><div class="pill b">B</div><div class="big mono" id="cvrB">—</div></div>
+      <div class="metricsGrid">
+        <div class="metricBlock">
+          <div class="metricTitle">전환율 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-cvr">?</button></div>
+          <div class="helpPopover" id="help-metric-cvr" role="tooltip">목표(예: 결제 완료)를 채운 세션 비율이에요. B가 A보다 높으면 바꾼 쪽이 나은 편일 수 있어요.</div>
+          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="cvrA">—</span></div>
+          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="cvrB">—</span></div>
         </div>
-
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">CTR (Clicks / PageViews) <button class="helpBtn" type="button" aria-expanded="false" aria-label="CTR 설명 보기" data-help-target="help-metric-ctr">?</button></div>
-            <div class="helpPopover" id="help-metric-ctr" role="tooltip">
-              페이지뷰 대비 클릭 비율입니다. 사용자가 화면을 본 뒤 실제로 상호작용했는지, CTA나 정보 구조가 행동을 유도했는지 보는 데 유용합니다.
-            </div>
-          </div>
-          <div class="miniRow"><div class="pill">A</div><div class="big mono" id="ctrA">—</div></div>
-          <div class="miniRow"><div class="pill b">B</div><div class="big mono" id="ctrB">—</div></div>
+        <div class="metricBlock">
+          <div class="metricTitle">클릭률 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-ctr">?</button></div>
+          <div class="helpPopover" id="help-metric-ctr" role="tooltip">화면을 본 뒤 클릭까지 이어진 비율이에요. 버튼·링크가 잘 보이는지 가늠할 때 씁니다.</div>
+          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="ctrA">—</span></div>
+          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="ctrB">—</span></div>
         </div>
-
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Bounce Rate <button class="helpBtn" type="button" aria-expanded="false" aria-label="Bounce Rate 설명 보기" data-help-target="help-metric-bounce">?</button></div>
-            <div class="helpPopover" id="help-metric-bounce" role="tooltip">
-              첫 화면만 보고 추가 상호작용 없이 이탈한 세션 비율입니다. 값이 높으면 랜딩 경험이나 첫 행동 유도가 약할 가능성이 큽니다.
-            </div>
-          </div>
-          <div class="miniRow"><div class="pill">A</div><div class="big mono" id="brA">—</div></div>
-          <div class="miniRow"><div class="pill b">B</div><div class="big mono" id="brB">—</div></div>
+        <div class="metricBlock">
+          <div class="metricTitle">이탈률 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-bounce">?</button></div>
+          <div class="helpPopover" id="help-metric-bounce" role="tooltip">첫 화면만 보고 클릭 없이 나간 세션 비율이에요. 높으면 첫 화면에서 다음 행동이 잘 안 보일 수 있어요.</div>
+          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="brA">—</span></div>
+          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="brB">—</span></div>
         </div>
-
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Counts <button class="helpBtn" type="button" aria-expanded="false" aria-label="Counts 설명 보기" data-help-target="help-metric-counts">?</button></div>
-            <div class="helpPopover" id="help-metric-counts" role="tooltip">
-              실험군별 users, sessions, page views, clicks, conversions의 절대값입니다. 비율 지표가 왜 그렇게 나왔는지 모수를 함께 확인할 수 있습니다.
-            </div>
-          </div>
+        <div class="metricBlock">
+          <div class="metricTitle">건수 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-counts">?</button></div>
+          <div class="helpPopover" id="help-metric-counts" role="tooltip">A·B 각각 방문자·세션·화면 조회·클릭·전환 건수예요. 위 비율을 해석할 때 같이 보면 좋아요.</div>
           <div class="kv mono" id="countsBox">—</div>
         </div>
       </div>
 
-      <div class="split">
-        <div class="miniCard">
-          <div class="miniTitle">Top Clicked Elements (A)</div>
+      <div class="twoCol" style="margin-top:var(--space-3);">
+        <div class="metricBlock">
+          <div class="metricTitle">클릭 많은 요소 · A</div>
           <div class="mono list" id="topA">—</div>
         </div>
-        <div class="miniCard">
-          <div class="miniTitle">Top Clicked Elements (B)</div>
+        <div class="metricBlock">
+          <div class="metricTitle">클릭 많은 요소 · B</div>
           <div class="mono list" id="topB">—</div>
         </div>
       </div>
-
-      <div class="hint">
-        * MVP 집계: <span class="mono">data/events.jsonl</span> 전체를 읽어서 계산합니다. (데이터가 커지면 ClickHouse/BigQuery로 이동)
-      </div>
     </section>
 
-    <section class="card" id="uxSummaryCard">
-      <div class="cardHead">
-        <h2>UX Analysis Overview</h2>
-        <div class="muted">세션 라벨 분포와 인사이트를 한 번에 확인</div>
-      </div>
-
-      <div class="grid analysisGrid">
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Total Sessions <button class="helpBtn" type="button" aria-expanded="false" aria-label="Total Sessions 설명 보기" data-help-target="help-total-sessions">?</button></div>
-            <div class="helpPopover" id="help-total-sessions" role="tooltip">
-              이번 조건으로 집계된 전체 세션 수입니다. 라벨 분포, 대표 유형, 인사이트 우선순위는 이 세션 집합을 기준으로 계산됩니다.
-            </div>
-          </div>
-          <div class="big mono" id="uxTotalSessions">—</div>
-        </div>
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Primary Label <button class="helpBtn" type="button" aria-expanded="false" aria-label="Primary Label 설명 보기" data-help-target="help-primary-label">?</button></div>
-            <div class="helpPopover" id="help-primary-label" role="tooltip">
-              가장 많은 세션에 붙은 사용자 유형입니다. 지금 트래픽에서 어떤 행동 패턴이 가장 지배적인지 빠르게 보여줍니다.
-            </div>
-          </div>
-          <div class="big" id="uxTopLabel">—</div>
-        </div>
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">High Priority Insights <button class="helpBtn" type="button" aria-expanded="false" aria-label="High Priority Insights 설명 보기" data-help-target="help-high-priority">?</button></div>
-            <div class="helpPopover" id="help-high-priority" role="tooltip">
-              현재 인사이트 중 우선순위가 `high`로 분류된 개수입니다. 비중이 크거나 마찰 강도가 높은 문제를 먼저 보게 해줍니다.
-            </div>
-          </div>
-          <div class="big mono" id="uxHighPriorityCount">—</div>
-        </div>
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Insight Provider <button class="helpBtn" type="button" aria-expanded="false" aria-label="Insight Provider 설명 보기" data-help-target="help-provider">?</button></div>
-            <div class="helpPopover" id="help-provider" role="tooltip">
-              인사이트를 만든 엔진입니다. `fallback`이면 규칙 기반 템플릿, `openai`면 실제 LLM 결과를 뜻합니다.
-            </div>
-          </div>
-          <div class="big mono" id="uxInsightProvider">—</div>
-        </div>
-      </div>
-
-      <div class="split analysisSplit">
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Label Distribution <button class="helpBtn" type="button" aria-expanded="false" aria-label="Label Distribution 설명 보기" data-help-target="help-label-distribution">?</button></div>
-            <div class="helpPopover" id="help-label-distribution" role="tooltip">
-              사용자 유형별 세션 수와 비중입니다. 어떤 유형이 많아졌는지, 테스트 트래픽이 어디에 집중되는지 확인할 수 있습니다.
-            </div>
-          </div>
-          <div id="labelBars" class="barList muted">loading…</div>
-        </div>
-        <div class="miniCard">
-          <div class="helpAnchor">
-            <div class="miniTitle helpTitle">Top Opportunities <button class="helpBtn" type="button" aria-expanded="false" aria-label="Top Opportunities 설명 보기" data-help-target="help-top-opportunities">?</button></div>
-            <div class="helpPopover" id="help-top-opportunities" role="tooltip">
-              우선순위가 높거나 영향이 큰 인사이트를 짧게 요약한 영역입니다. 지금 바로 봐야 할 문제 후보를 빠르게 훑는 용도입니다.
-            </div>
-          </div>
-          <div id="opportunityList" class="opportunityList muted">loading…</div>
-        </div>
-      </div>
-    </section>
-
+    <!-- ===== 5. 고객 유형 상세 ===== -->
     <section class="card" id="labelsCard">
       <div class="cardHead">
-        <h2>Label Summary</h2>
-        <div class="muted">유형별 세션 수, 비중, 평균 행동 지표</div>
+        <h2>유형별 지표</h2>
+        <div class="muted">세션 수·비중·체류·방문 깊이·결제까지 갔는지</div>
       </div>
 
       <div class="tableWrap">
         <table class="table">
           <thead>
             <tr>
-              <th>Label</th>
-              <th>Sessions</th>
-              <th>Share</th>
-              <th>Avg Duration</th>
-              <th>Avg Depth</th>
-              <th>Checkout Complete Rate</th>
+              <th>유형</th>
+              <th>세션</th>
+              <th>비중</th>
+              <th>평균 체류</th>
+              <th>방문 깊이</th>
+              <th>결제 완료 비율</th>
             </tr>
           </thead>
           <tbody id="labelSummaryBody">
-            <tr><td colspan="6" class="muted">loading…</td></tr>
+            <tr><td colspan="6" class="emptyState">세션 데이터가 없어요.</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
+    <!-- ===== 6. 최근 세션 ===== -->
     <section class="card" id="sessionsCard">
       <div class="cardHead">
-        <h2>Recent Sessions</h2>
-        <div class="muted">최근 세션의 라벨과 퍼널 진행 상태</div>
+        <h2>최근 세션</h2>
+        <div class="muted" id="sessionsSourceLabel">최근 방문 기록</div>
       </div>
 
       <div class="tableWrap">
         <table class="table">
           <thead>
             <tr>
-              <th>Session</th>
-              <th>Label</th>
-              <th>Confidence</th>
-              <th>Duration</th>
-              <th>Page Views</th>
-              <th>Clicks</th>
-              <th>Depth</th>
-              <th>Max Step</th>
-              <th>Checkout</th>
+              <th>세션 ID</th>
+              <th>유형</th>
+              <th>분류 점수</th>
+              <th>체류</th>
+              <th>화면 조회</th>
+              <th>클릭</th>
+              <th>방문 깊이</th>
+              <th>퍼널</th>
+              <th>결제</th>
             </tr>
           </thead>
           <tbody id="sessionsBody">
-            <tr><td colspan="9" class="muted">loading…</td></tr>
+            <tr><td colspan="9" class="emptyState">세션 데이터가 없어요.</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
+    <!-- ===== 7. 개선 제안 (Insights) ===== -->
     <section class="card" id="insightsCard">
       <div class="cardHead">
-        <h2>UX Insights</h2>
-        <div class="muted">라벨별 원인 가설, 검증 방법, 추천 실험</div>
+        <h2>인사이트</h2>
+        <div class="muted">가능한 원인, 확인 방법, 다음 실험 아이디어</div>
       </div>
 
       <div id="insightsList" class="insightsGrid">
-        <div class="miniCard muted">loading…</div>
+        <div class="emptyState">인사이트가 없거나 아직 생성 중이에요.</div>
       </div>
     </section>
 
-    <section class="card">
-      <div class="cardHead">
-        <h2>Quick Test</h2>
-        <div class="muted">SDK가 실제 적용되는지 바로 확인</div>
+    <!-- ===== 8. 빠른 테스트 (접기) ===== -->
+    <details class="card detailsCard">
+      <summary class="detailsSummary">연동 점검 <span class="muted">스크립트가 사이트에 붙었는지</span></summary>
+      <div class="detailsBody">
+        <div class="btnRow" id="quickTestLinks">
+          <span class="emptyState">미리볼 주소가 설정돼 있지 않아요.</span>
+        </div>
+        <div class="muted" id="quickTestHint" style="margin-top:var(--space-2);">
+          한 브라우저에서는 A·B 중 하나에 고정돼요. 다른 조합을 보려면 시크릿 창을 쓰면 됩니다.
+        </div>
       </div>
-      <div class="btnRow" id="quickTestLinks">
-        <span class="muted">loading…</span>
-      </div>
-      <div class="muted" id="quickTestHint" style="margin-top:10px;">
-        방문할 때마다 유저가 A/B로 고정됩니다(anon_user_id 기반). 다른 유저처럼 보려면 시크릿 창 또는 localStorage 삭제.
-      </div>
-    </section>
+    </details>
+
   </main>
 
-    <div class="chatbotDock" aria-live="polite">
-      <button id="chatbotFab" class="chatbotFab" type="button" aria-expanded="false" aria-controls="analyticsChatPanel">
-        <span class="chatbotFabIcon">AI</span>
-      <span class="chatbotFabLabel">Analytics Copilot</span>
+  <!-- ===== 사용자 관리 모달 (admin 전용) ===== -->
+  <dialog id="userManagementDialog" class="dialog">
+    <div class="dialogInner">
+      <div class="dialogHeader">
+        <h2>사용자 관리</h2>
+        <button class="btnGhost" id="closeDialogBtn" type="button">닫기</button>
+      </div>
+
+      <div class="dialogBody">
+        <div class="dialogSection">
+          <h3>계정 추가</h3>
+          <form id="createUserForm">
+            <div class="formGrid">
+              <label class="formField">
+                <span>아이디</span>
+                <input id="userUsernameInput" type="text" autocomplete="username" placeholder="예: merch_admin" />
+              </label>
+              <label class="formField">
+                <span>이름(표시)</span>
+                <input id="userDisplayNameInput" type="text" autocomplete="name" placeholder="예: 운영 매니저" />
+              </label>
+              <label class="formField full">
+                <span>초기 비밀번호</span>
+                <input id="userPasswordInput" type="password" autocomplete="new-password" placeholder="최소 8자 이상 권장" />
+              </label>
+            </div>
+
+            <div class="formField" style="margin-top:var(--space-3);">
+              <span>볼 수 있는 사이트</span>
+              <div id="userSiteChecklist" class="siteCheckRow">
+                <span class="muted">불러오는 중…</span>
+              </div>
+            </div>
+
+            <label class="checkLabel" style="margin:var(--space-3) 0;">
+              <input id="userActiveInput" type="checkbox" checked />
+              만들자마자 로그인 가능하게
+            </label>
+
+            <div class="btnRow">
+              <button class="btnPrimary" id="createUserBtn" type="submit">만들기</button>
+              <button class="btnGhost" id="resetUserFormBtn" type="button">초기화</button>
+            </div>
+            <div class="hint" id="userFormStatus">본인에게 열려 있는 사이트만 고를 수 있어요.</div>
+          </form>
+        </div>
+
+        <div class="dialogSection">
+          <h3>계정 목록 <span class="muted" id="userCountText"></span></h3>
+          <div class="tableWrap">
+            <table class="table tableCompact">
+              <thead>
+                <tr>
+                  <th>아이디</th>
+                  <th>이름</th>
+                  <th>상태</th>
+                  <th>사이트</th>
+                  <th>수정일</th>
+                </tr>
+              </thead>
+              <tbody id="usersTbody">
+                <tr><td colspan="5" class="emptyState">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===== AI 분석 도우미 (Copilot) ===== -->
+  <div class="chatbotDock" aria-live="polite">
+    <button id="chatbotFab" class="chatbotFab" type="button" aria-expanded="false" aria-controls="analyticsChatPanel">
+      <span class="chatbotFabIcon">AI</span>
+      <span class="chatbotFabLabel">AI 도우미</span>
     </button>
 
     <section id="analyticsChatPanel" class="chatbotPanel is-hidden" aria-hidden="true">
@@ -344,37 +318,37 @@
         <div class="chatbotTitleWrap">
           <div class="chatbotStatusDot" aria-hidden="true"></div>
           <div>
-            <div class="chatbotTitle">Analytics Copilot</div>
-            <div class="chatbotSub" id="chatSelectedExperiment">실험을 선택하면 더 구체적으로 도와줄 수 있어요</div>
+            <div class="chatbotTitle">AI 도우미</div>
+            <div class="chatbotSub" id="chatSelectedExperiment">실험을 골라 두면 질문에 더 잘 맞춰 답해요</div>
           </div>
         </div>
         <div class="chatbotHeaderActions">
-          <button id="chatbotCloseBtn" class="chatbotIconBtn" type="button" aria-label="챗봇 닫기">닫기</button>
+          <button id="chatbotCloseBtn" class="chatbotIconBtn" type="button" aria-label="닫기">닫기</button>
         </div>
       </header>
 
       <div class="chatbotMetaRow">
-        <div class="muted">선택된 실험: <span class="mono" id="copilotExperimentKey">아직 선택 안 됨</span></div>
+        <div class="muted">지금 실험 <span class="mono" id="copilotExperimentKey">미선택</span></div>
         <div class="muted" id="copilotDraftStatus">초안 없음</div>
       </div>
 
       <div class="chatbotQuickActions">
         <button class="chatbotQuickBtn" type="button" data-q="현재 실험 요약해줘">실험 요약</button>
-        <button class="chatbotQuickBtn" type="button" data-q="A/B 차이를 설명해줘">A/B 차이</button>
-        <button class="chatbotQuickBtn" type="button" data-q="다음 실험안을 만들어줘">다음 실험안</button>
+        <button class="chatbotQuickBtn" type="button" data-q="A/B 차이를 설명해줘">A/B 비교</button>
+        <button class="chatbotQuickBtn" type="button" data-q="다음 실험안을 만들어줘">다음 실험 아이디어</button>
       </div>
 
       <div id="chatMessages" class="chatbotMessages"></div>
 
       <div class="chatbotActionsRow">
-        <button class="btn" type="button" id="saveDraftBtn" disabled>draft 저장</button>
-        <button class="btn" type="button" id="openDraftInEditorBtn" disabled>초안을 에디터에서 열기</button>
+        <button class="btnGhost" type="button" id="saveDraftBtn" disabled>초안 저장</button>
+        <button class="btnGhost" type="button" id="openDraftInEditorBtn" disabled>편집기로 열기</button>
       </div>
 
       <footer class="chatbotComposer">
         <label class="chatbotInputWrap" for="chatInput">
-          <span class="chatbotInputLabel">메시지 입력</span>
-          <textarea id="chatInput" class="chatbotInput" rows="3" placeholder="예: checkout 실험의 문제점과 다음 실험 아이디어를 알려줘"></textarea>
+          <span class="chatbotInputLabel">질문</span>
+          <textarea id="chatInput" class="chatbotInput" rows="3" placeholder="예: 결제 단계에서 뭐가 불편한지, 다음에 뭘 실험하면 좋을지 알려줘"></textarea>
         </label>
         <button id="chatSendBtn" class="chatbotSendBtn" type="button">보내기</button>
       </footer>

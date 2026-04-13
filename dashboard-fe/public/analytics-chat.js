@@ -56,8 +56,8 @@
       state.selectedExperimentKey = key || null;
       if (!selectedExperimentEl) return;
       selectedExperimentEl.textContent = state.selectedExperimentKey
-        ? `${state.selectedExperimentKey} 기준으로 응답 중`
-        : "실험을 선택하면 더 구체적으로 도와줄 수 있어요";
+        ? `「${state.selectedExperimentKey}」 기준으로 답할게요`
+        : "실험을 한 개 골라 두면 더 맞는 답을 드릴 수 있어요";
     }
 
     async function send(text) {
@@ -117,7 +117,7 @@
       btn.addEventListener("click", () => send(btn.dataset.q || ""));
     });
 
-    renderMessage("assistant", "안녕하세요. 현재 실험 성과를 해석하거나 다음 A/B 테스트 아이디어를 제안해드릴게요.");
+    renderMessage("assistant", "안녕하세요. 실험 결과 해석이나 다음에 시험해 볼 아이디어가 필요하면 편하게 물어보세요.");
 
     try {
       setOpen(localStorage.getItem(openKey) === "1");
