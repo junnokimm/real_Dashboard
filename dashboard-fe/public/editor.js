@@ -154,8 +154,8 @@
   function setPickMode(on) {
     pickMode = on;
     togglePickBtn.dataset.state = on ? "on" : "off";
-    togglePickBtn.textContent = `선택모드: ${on ? "ON" : "OFF"}`;
-    togglePickBtn.classList.toggle("primary", on);
+    togglePickBtn.textContent = on ? "선택모드 ON" : "선택모드 OFF";
+    togglePickBtn.classList.toggle("is-on", on);
     postToFrame("EDITOR_SET_PICKMODE", { pickMode: on });
     log(`pickMode -> ${on}`);
   }
