@@ -37,40 +37,99 @@
 
   <main class="wrap">
 
+    <!-- ===== 0. 기간 설정 ===== -->
+    <section class="card periodCard">
+      <div class="cardHead periodHead">
+        <div>
+          <h2>기간 설정</h2>
+          <div class="muted">주요 카드와 그래프는 선택한 기간 기준으로 집계됩니다.</div>
+        </div>
+        <div class="periodControls">
+          <label class="filterField" for="periodPreset">
+            <span>기간</span>
+            <select id="periodPreset" class="selectInput" aria-label="기간 선택">
+              <option value="today">오늘</option>
+              <option value="7d" selected>최근 7일</option>
+              <option value="30d">최근 30일</option>
+              <option value="custom">사용자 지정</option>
+            </select>
+          </label>
+          <div class="dateRangeInputs" id="customDateRange" hidden>
+            <label class="filterField" for="customFromDate">
+              <span>시작일</span>
+              <input id="customFromDate" class="dateInput" type="date" />
+            </label>
+            <label class="filterField" for="customToDate">
+              <span>종료일</span>
+              <input id="customToDate" class="dateInput" type="date" />
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="summaryHint" id="periodStatusText">최근 7일 기준으로 주요 지표를 집계합니다.</div>
+    </section>
+
     <!-- ===== 1. 요약 카드 (좌상단 = 가장 중요) ===== -->
     <section class="summaryRow" id="summaryRow">
       <div class="summaryCard">
         <div class="summaryLabel">세션 수</div>
         <div class="summaryValue mono" id="uxTotalSessions">—</div>
-        <div class="summaryHint">이 사이트로 잡힌 방문 세션 합계</div>
+        <div class="summaryHint" id="uxSessionHint">이 사이트로 잡힌 방문 세션 합계</div>
       </div>
       <div class="summaryCard">
         <div class="summaryLabel">가장 많은 유형</div>
         <div class="summaryValue" id="uxTopLabel">—</div>
-        <div class="summaryHint">지금 트래픽에서 비중이 가장 큰 패턴</div>
+        <div class="summaryHint" id="uxTopLabelHint">지금 트래픽에서 비중이 가장 큰 패턴</div>
       </div>
       <div class="summaryCard accent">
-        <div class="summaryLabel">긴급 제안</div>
+        <div class="summaryLabel">오늘 먼저 확인할 문제</div>
         <div class="summaryValue mono" id="uxHighPriorityCount">—</div>
-        <div class="summaryHint">‘긴급’으로 표시된 제안 개수</div>
+        <div class="summaryHint" id="uxPriorityHint">우선 확인이 필요한 항목 수</div>
       </div>
     </section>
 
-    <!-- ===== 2. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
+    <!-- ===== 2. 기간별 세션/이벤트 추이 ===== -->
+    <section class="card">
+      <div class="cardHead">
+        <div>
+          <h2>기간별 세션 추이</h2>
+          <div class="muted">선택한 기간 동안 수집된 세션 수와 이벤트 수의 변화를 보여줍니다.</div>
+        </div>
+        <div class="chartLegend" id="trendLegend">
+          <span class="legendItem"><span class="legendDot sessions"></span>세션 수</span>
+          <span class="legendItem"><span class="legendDot events"></span>이벤트 수</span>
+        </div>
+      </div>
+      <div id="trendChartCard" class="trendChartCard">
+        <div class="chartState">불러오는 중…</div>
+      </div>
+    </section>
+
+    <!-- ===== 3. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
     <section class="twoCol">
       <div class="card">
         <div class="cardHead">
           <h2>유형별 비중</h2>
           <div class="muted">패턴마다 세션이 얼마나 왔는지</div>
         </div>
-        <div id="labelBars" class="barList">
-          <div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>
+        <div class="distributionLayout">
+          <div class="distributionDonutWrap">
+            <div id="labelDonut" class="distributionDonut empty">
+              <div class="distributionDonutCenter">
+                <strong id="labelDonutTotal">0</strong>
+                <span>세션</span>
+              </div>
+            </div>
+          </div>
+          <div id="labelBars" class="barList">
+            <div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>
+          </div>
         </div>
       </div>
       <div class="card">
         <div class="cardHead">
           <h2>먼저 볼 만한 포인트</h2>
-          <div class="muted">인사이트에서 뽑은 상위 이슈</div>
+          <div class="muted">매일 오전 08:00 기준으로 업데이트되는 우선 확인 항목</div>
         </div>
         <div id="opportunityList" class="opportunityList">
           <div class="emptyState">인사이트가 생기면 요약이 여기에 올라옵니다.</div>
@@ -109,6 +168,7 @@
       </div>
     </section>
 
+    <!-- TODO(phase-2): 실험 결과는 별도 모달 구조로 전환 -->
     <!-- ===== 4. 실험 성과 (Metrics) — 실험 선택 시 표시 ===== -->
     <section class="card" id="metricsCard" style="display:none;">
       <div class="cardHead">
@@ -180,6 +240,7 @@
       </div>
     </section>
 
+    <!-- TODO(phase-3): 최근 세션은 이동 흐름 시각화로 점진 대체 -->
     <!-- ===== 6. 최근 세션 ===== -->
     <section class="card" id="sessionsCard">
       <div class="cardHead">
@@ -209,6 +270,7 @@
       </div>
     </section>
 
+    <!-- TODO(phase-3): AI 인사이트는 전체 프로덕트 관점 서술형으로 재구성 -->
     <!-- ===== 7. 개선 제안 (Insights) ===== -->
     <section class="card" id="insightsCard">
       <div class="cardHead">

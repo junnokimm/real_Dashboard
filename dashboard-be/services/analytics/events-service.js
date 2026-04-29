@@ -3,8 +3,58 @@ const { createFileEventStore } = require("../stores/event-store");
 function createEventsService({ eventsFile, eventStore }) {
   const resolvedEventStore = eventStore || createFileEventStore({ eventsFile });
 
-  function getEventSummary({ siteId, page }) {
-    const events = resolvedEventStore.readAll().filter((e) => e.site_id === siteId);
+  function getEventTs(event) {
+    if (typeof event?.ts === "number") return event.ts;
+    if (typeof event?.received_at === "number") return event.received_at;
+    return null;
+  }
+
+  function createTrendBuckets(events, fromTs, toTs) {
+    const now = Date.now();
+    const start = typeof fromTs === "number" ? fromTs : Math.min(...events.map((e) => getEventTs(e)).filter((ts) => typeof ts === "number"));
+    const end = typeof toTs === "number" ? toTs : Math.max(...events.map((e) => getEventTs(e)).filter((ts) => typeof ts === "number"), now);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return [];
+
+    const span = end - start;
+    const bucketMs = span <= 24 * 60 * 60 * 1000
+      ? 60 * 60 * 1000
+      : 24 * 60 * 60 * 1000;
+
+    const bucketMap = new Map();
+
+    for (let ts = start; ts <= end; ts += bucketMs) {
+      const key = Math.floor(ts / bucketMs) * bucketMs;
+      if (!bucketMap.has(key)) bucketMap.set(key, { ts: key, event_count: 0, sessions: new Set() });
+    }
+
+    for (const event of events) {
+      const ts = getEventTs(event);
+      if (typeof ts !== "number") continue;
+      const key = Math.floor(ts / bucketMs) * bucketMs;
+      if (!bucketMap.has(key)) bucketMap.set(key, { ts: key, event_count: 0, sessions: new Set() });
+      const bucket = bucketMap.get(key);
+      bucket.event_count += 1;
+      if (event.session_id) bucket.sessions.add(event.session_id);
+    }
+
+    return Array.from(bucketMap.values())
+      .sort((a, b) => a.ts - b.ts)
+      .map((bucket) => ({
+        ts: bucket.ts,
+        session_count: bucket.sessions.size,
+        event_count: bucket.event_count,
+      }));
+  }
+
+  function getEventSummary({ siteId, page, fromTs, toTs }) {
+    const events = resolvedEventStore.readAll().filter((e) => {
+      if (e.site_id !== siteId) return false;
+      const ts = getEventTs(e);
+      if ((typeof fromTs === "number" || typeof toTs === "number") && typeof ts !== "number") return false;
+      if (typeof fromTs === "number" && ts < fromTs) return false;
+      if (typeof toTs === "number" && ts > toTs) return false;
+      return true;
+    });
     const filtered = page ? events.filter((e) => (e.path || "").startsWith(page)) : events;
 
     const pageViews = new Map();
@@ -64,10 +114,13 @@ function createEventsService({ eventsFile, eventStore }) {
     return {
       ok: true,
       site_id: siteId,
+      from_ts: fromTs,
+      to_ts: toTs,
       total_events: filtered.length,
       top_pages: topPages,
       top_elements: topElements,
       page_flow: flow,
+      trend: createTrendBuckets(filtered, fromTs, toTs),
       funnel: {
         detail_page_view: detailPageViews,
         checkout_page_view: checkoutPageViews,

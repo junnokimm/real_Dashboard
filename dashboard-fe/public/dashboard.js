@@ -16,6 +16,17 @@
   const quickTestLinks = document.getElementById("quickTestLinks");
   const quickTestHint = document.getElementById("quickTestHint");
   const sessionsSourceLabel = document.getElementById("sessionsSourceLabel");
+  const periodPreset = document.getElementById("periodPreset");
+  const customDateRange = document.getElementById("customDateRange");
+  const customFromDate = document.getElementById("customFromDate");
+  const customToDate = document.getElementById("customToDate");
+  const periodStatusText = document.getElementById("periodStatusText");
+  const trendChartCard = document.getElementById("trendChartCard");
+  const labelDonut = document.getElementById("labelDonut");
+  const labelDonutTotal = document.getElementById("labelDonutTotal");
+  const uxSessionHint = document.getElementById("uxSessionHint");
+  const uxTopLabelHint = document.getElementById("uxTopLabelHint");
+  const uxPriorityHint = document.getElementById("uxPriorityHint");
 
   const settingsBtn = document.getElementById("settingsBtn");
   const userManagementDialog = document.getElementById("userManagementDialog");
@@ -71,6 +82,9 @@
     users: [],
     userFetchError: null,
     newUserSiteIds: [],
+    periodPreset: "7d",
+    customFromDate: "",
+    customToDate: "",
   };
 
   // ─── 한국어 라벨 매핑 ───
@@ -89,12 +103,34 @@
     archived: "보관함",
   };
 
+  const LABEL_ORDER = [
+    "over_explorer",
+    "price_sensitive_dropper",
+    "window_shopper",
+    "ux_friction_dropper",
+    "checkout_abandoner",
+  ];
+
+  const LABEL_DESC = {
+    over_explorer: "여러 화면을 오래 둘러보지만 결정을 미루는 패턴",
+    price_sensitive_dropper: "가격·혜택·배송 조건을 비교하다 이탈하는 패턴",
+    window_shopper: "가볍게 둘러보다 구매 행동 없이 종료하는 패턴",
+    ux_friction_dropper: "불편이나 오류를 겪은 뒤 흐름을 이탈하는 패턴",
+    checkout_abandoner: "장바구니·결제 단계에서 구매 완료로 이어지지 않는 패턴",
+  };
+
+  const LABEL_COLORS = ["#5b76fe", "#7d92ff", "#ff7a45", "#ffb14a", "#ff5f7a"];
+
   function labelName(label) {
     return LABEL_KO[label] || label || "알 수 없음";
   }
 
   function statusName(status) {
     return STATUS_KO[status] || status || "—";
+  }
+
+  function labelDescription(label) {
+    return LABEL_DESC[label] || "아직 설명이 준비되지 않았습니다.";
   }
 
   // ─── 도우미 ───
@@ -115,6 +151,11 @@
     if (ms < 1000) return `${Math.round(ms)}ms`;
     return `${(ms / 1000).toFixed(1)}초`;
   }
+  function fmtSignedPct(value) {
+    if (typeof value !== "number" || !isFinite(value)) return "—";
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value.toFixed(1)}%`;
+  }
   function escapeHtml(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -122,6 +163,77 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function toDateInputValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function parseDateRangeStart(value) {
+    if (!value) return null;
+    return new Date(`${value}T00:00:00`).getTime();
+  }
+
+  function parseDateRangeEnd(value) {
+    if (!value) return null;
+    return new Date(`${value}T23:59:59.999`).getTime();
+  }
+
+  function syncPeriodInputs() {
+    const today = new Date();
+    const defaultTo = toDateInputValue(today);
+    const defaultFrom = toDateInputValue(new Date(today.getTime() - (6 * 24 * 60 * 60 * 1000)));
+    if (!state.customFromDate) state.customFromDate = defaultFrom;
+    if (!state.customToDate) state.customToDate = defaultTo;
+    if (periodPreset) periodPreset.value = state.periodPreset;
+    if (customFromDate) customFromDate.value = state.customFromDate;
+    if (customToDate) customToDate.value = state.customToDate;
+    if (customDateRange) customDateRange.hidden = state.periodPreset !== "custom";
+  }
+
+  function getPeriodRange() {
+    const now = Date.now();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (state.periodPreset === "today") {
+      return { label: "오늘", fromTs: today.getTime(), toTs: now };
+    }
+    if (state.periodPreset === "30d") {
+      return { label: "최근 30일", fromTs: now - (29 * 24 * 60 * 60 * 1000), toTs: now };
+    }
+    if (state.periodPreset === "custom") {
+      const fromTs = parseDateRangeStart(state.customFromDate);
+      const toTs = parseDateRangeEnd(state.customToDate);
+      if (typeof fromTs === "number" && typeof toTs === "number" && fromTs <= toTs) {
+        return { label: "사용자 지정 기간", fromTs, toTs };
+      }
+      return { label: "사용자 지정 기간", fromTs: null, toTs: null };
+    }
+    return { label: "최근 7일", fromTs: now - (6 * 24 * 60 * 60 * 1000), toTs: now };
+  }
+
+  function buildPeriodQuery() {
+    const range = getPeriodRange();
+    const params = new URLSearchParams();
+    if (typeof range.fromTs === "number") params.set("from_ts", String(range.fromTs));
+    if (typeof range.toTs === "number") params.set("to_ts", String(range.toTs));
+    return { range, query: params.toString() };
+  }
+
+  function updatePeriodStatus() {
+    syncPeriodInputs();
+    if (!periodStatusText) return;
+    const range = getPeriodRange();
+    if (state.periodPreset === "custom" && (range.fromTs == null || range.toTs == null)) {
+      periodStatusText.textContent = "사용자 지정 기간을 선택하려면 시작일과 종료일을 모두 입력해 주세요.";
+      return;
+    }
+    const fromText = typeof range.fromTs === "number" ? new Date(range.fromTs).toLocaleDateString("ko-KR") : "—";
+    const toText = typeof range.toTs === "number" ? new Date(range.toTs).toLocaleDateString("ko-KR") : "—";
+    periodStatusText.textContent = `${range.label} · ${fromText} ~ ${toText} 기준으로 카드와 그래프를 집계합니다.`;
   }
 
   // ─── 도움말 팝오버 ───
@@ -257,18 +369,31 @@
     return j;
   }
 
+  async function fetchEventSummary() {
+    const { query } = buildPeriodQuery();
+    const suffix = query ? `&${query}` : "";
+    const r = await fetch(`/api/event-summary?site_id=${encodeURIComponent(getCurrentSiteId())}${suffix}`);
+    const j = await r.json();
+    if (!j?.ok) throw new Error(j?.reason || "event summary failed");
+    return j;
+  }
+
   async function fetchSessions() {
     const siteId = encodeURIComponent(getCurrentSiteId());
+    const { query } = buildPeriodQuery();
+    const suffix = query ? `&${query}` : "";
     try {
-      const rr = await fetch(`/api/realtime/sessions?site_id=${siteId}&limit=12`);
-      const rj = await rr.json();
-      if (rj?.ok) {
-        state.sessionsSource = rj.source || "redis";
-        return Array.isArray(rj.sessions) ? rj.sessions : [];
+      if (state.periodPreset === "today") {
+        const rr = await fetch(`/api/realtime/sessions?site_id=${siteId}&limit=12`);
+        const rj = await rr.json();
+        if (rj?.ok) {
+          state.sessionsSource = rj.source || "redis";
+          return Array.isArray(rj.sessions) ? rj.sessions : [];
+        }
       }
     } catch (_) { /* fallback */ }
 
-    const r = await fetch(`/api/sessions?site_id=${siteId}&limit=12`);
+    const r = await fetch(`/api/sessions?site_id=${siteId}&limit=12${suffix}`);
     const j = await r.json();
     if (!j?.ok) throw new Error(j?.reason || "sessions failed");
     state.sessionsSource = "analytics";
@@ -276,14 +401,20 @@
   }
 
   async function fetchLabelsSummary() {
-    const r = await fetch(`/api/labels/summary?site_id=${encodeURIComponent(getCurrentSiteId())}`);
+    const { query } = buildPeriodQuery();
+    const suffix = query ? `&${query}` : "";
+    const r = await fetch(`/api/labels/summary?site_id=${encodeURIComponent(getCurrentSiteId())}${suffix}`);
     const j = await r.json();
     if (!j?.ok) throw new Error(j?.reason || "labels summary failed");
     return j.summary || [];
   }
 
-  async function fetchInsights() {
-    const r = await fetch(`/api/insights?site_id=${encodeURIComponent(getCurrentSiteId())}&reps=3`);
+  async function fetchInsights(periodAware) {
+    const suffix = periodAware ? (() => {
+      const { query } = buildPeriodQuery();
+      return query ? `&${query}` : "";
+    })() : "";
+    const r = await fetch(`/api/insights?site_id=${encodeURIComponent(getCurrentSiteId())}&reps=3${suffix}`);
     const j = await r.json();
     if (!j?.ok) throw new Error(j?.reason || "insights failed");
     return j;
@@ -603,6 +734,89 @@
     return list.map((x) => `${String(x.element_id).padEnd(18)}  ${x.count}`).join("\n");
   }
 
+  function mergeLabelSummary(summary) {
+    const byLabel = new Map(Array.isArray(summary) ? summary.map((item) => [item.label, item]) : []);
+    return LABEL_ORDER.map((label, index) => {
+      const current = byLabel.get(label);
+      return {
+        label,
+        color: LABEL_COLORS[index % LABEL_COLORS.length],
+        sessions: Number(current?.sessions) || 0,
+        share: typeof current?.share === "number" ? current.share : 0,
+        metrics: current?.metrics || {
+          avg_duration_ms: 0,
+          avg_depth: 0,
+          checkout_complete_rate: 0,
+        },
+      };
+    });
+  }
+
+  function buildDonutGradient(summary) {
+    const segments = [];
+    let start = 0;
+    summary.forEach((item) => {
+      const pct = Math.max(0, Math.min(1, Number(item.share) || 0));
+      const end = start + (pct * 360);
+      segments.push(`${item.color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`);
+      start = end;
+    });
+    if (start < 360) segments.push(`#eef2f8 ${start.toFixed(2)}deg 360deg`);
+    return `conic-gradient(${segments.join(", ")})`;
+  }
+
+  function renderTrendChart(summary) {
+    if (!trendChartCard) return;
+    const trend = Array.isArray(summary?.trend) ? summary.trend : [];
+    if (!trend.length) {
+      trendChartCard.innerHTML = '<div class="chartState">해당 기간에 수집된 로그가 없습니다.</div>';
+      return;
+    }
+
+    const sessions = trend.map((item) => Number(item.session_count) || 0);
+    const events = trend.map((item) => Number(item.event_count) || 0);
+    const maxValue = Math.max(1, ...sessions, ...events);
+    const width = 960;
+    const height = 220;
+    const padX = 32;
+    const padTop = 16;
+    const padBottom = 24;
+    const usableWidth = width - (padX * 2);
+    const usableHeight = height - padTop - padBottom;
+    const count = trend.length;
+
+    const pointX = (index) => count === 1 ? width / 2 : padX + ((usableWidth / (count - 1)) * index);
+    const pointY = (value) => padTop + (usableHeight - ((value / maxValue) * usableHeight));
+    const toPolyline = (values) => values.map((value, index) => `${pointX(index)},${pointY(value)}`).join(" ");
+
+    const labels = trend.map((item) => {
+      const date = new Date(item.ts);
+      return state.periodPreset === "today"
+        ? date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+        : date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+    });
+
+    trendChartCard.innerHTML = `
+      <div class="trendChartWrap">
+        <svg class="trendSvg" viewBox="0 0 ${width} ${height}" role="img" aria-label="세션 수와 이벤트 수 추이 그래프">
+          <line x1="${padX}" y1="${height - padBottom}" x2="${width - padX}" y2="${height - padBottom}" stroke="#d6deed" stroke-width="1" />
+          <polyline fill="none" stroke="#5b76fe" stroke-width="3" points="${toPolyline(sessions)}"></polyline>
+          <polyline fill="none" stroke="#ff7a45" stroke-width="3" points="${toPolyline(events)}"></polyline>
+          ${trend.map((item, index) => `
+            <g>
+              <circle cx="${pointX(index)}" cy="${pointY(sessions[index])}" r="4" fill="#5b76fe">
+                <title>${labels[index]} · 세션 ${fmtInt(sessions[index])}</title>
+              </circle>
+              <circle cx="${pointX(index)}" cy="${pointY(events[index])}" r="4" fill="#ff7a45">
+                <title>${labels[index]} · 이벤트 ${fmtInt(events[index])}</title>
+              </circle>
+            </g>
+          `).join("")}
+        </svg>
+        <div class="trendAxisLabelRow" style="grid-template-columns: repeat(${count}, minmax(0, 1fr));">${labels.map((label) => `<span class="trendAxisLabel">${escapeHtml(label)}</span>`).join("")}</div>
+      </div>`;
+  }
+
   async function showMetrics(key) {
     metricsCard.style.display = "block";
     metricKeyEl.textContent = key;
@@ -634,16 +848,20 @@
 
   // ─── 렌더링: 라벨 분포 바 ───
   function renderLabelBars(summary) {
-    if (!Array.isArray(summary) || !summary.length) {
-      labelBars.innerHTML = '<div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>';
-      return;
+    const fullSummary = mergeLabelSummary(summary);
+    const totalSessions = fullSummary.reduce((sum, item) => sum + item.sessions, 0);
+    if (labelDonutTotal) labelDonutTotal.textContent = fmtInt(totalSessions);
+    if (labelDonut) {
+      labelDonut.classList.toggle("empty", totalSessions === 0);
+      labelDonut.style.setProperty("--donut-bg", buildDonutGradient(fullSummary));
     }
-    labelBars.innerHTML = summary.map((item) => {
+    labelBars.innerHTML = fullSummary.map((item) => {
       const share = typeof item.share === "number" ? item.share : 0;
       const pct = Math.max(0, Math.min(100, share * 100));
-      return `<div class="barRow">
+      return `<div class="barRow ${item.sessions === 0 ? "mutedBar" : ""}">
         <div class="barMeta"><span>${escapeHtml(labelName(item.label))}</span><span class="mono">${fmtInt(item.sessions)} / ${fmtPct(share)}</span></div>
-        <div class="barTrack"><div class="barFill" style="width:${pct.toFixed(2)}%"></div></div>
+        <div class="labelDescription">${escapeHtml(item.sessions === 0 ? "아직 감지되지 않음" : labelDescription(item.label))}</div>
+        <div class="barTrack"><div class="barFill" style="width:${pct.toFixed(2)}%;background:${escapeHtml(item.color)}"></div></div>
       </div>`;
     }).join("");
   }
@@ -652,16 +870,28 @@
   function renderOpportunities(insights) {
     if (!Array.isArray(insights) || !insights.length) {
       opportunityList.innerHTML = '<div class="emptyState">인사이트가 생기면 요약이 여기에 올라옵니다.</div>';
+      if (uxPriorityHint) uxPriorityHint.textContent = "우선 확인이 필요한 항목을 아직 만들지 못했습니다.";
       return;
     }
     const priorityKo = { high: "긴급", medium: "보통", low: "낮음" };
+    const topItem = insights[0];
+    if (uxPriorityHint) {
+      uxPriorityHint.textContent = topItem
+        ? `${labelName(topItem.label)} · ${topItem.where || "우선 확인 포인트"}`
+        : "우선 확인이 필요한 항목 수";
+    }
     opportunityList.innerHTML = insights.slice(0, 3).map((i) => `
       <div class="opportunityItem">
         <div class="opportunityTitle">
-          <strong>${escapeHtml(labelName(i.label))}</strong>
+          <strong>${escapeHtml(i.where || labelName(i.label))}</strong>
           <span class="badge ${escapeHtml(i.priority || "low")}">${escapeHtml(priorityKo[i.priority] || i.priority || "낮음")}</span>
         </div>
-        <div class="insightText">${escapeHtml(i.where || "")}</div>
+        <div class="opportunityMeta">
+          <span class="badge label">${escapeHtml(labelName(i.label))}</span>
+          ${i.where ? `<span class="badge label">${escapeHtml(i.where)}</span>` : ""}
+        </div>
+        <div class="opportunityDesc">${escapeHtml((Array.isArray(i.possible_causes) && i.possible_causes[0]) || i.where || "최근 수집된 UX 패턴을 기반으로 우선 확인이 필요한 항목입니다.")}</div>
+        <div class="opportunityAction"><strong>권장 액션</strong> · ${escapeHtml((Array.isArray(i.validation_methods) && i.validation_methods[0]) || (Array.isArray(i.recommended_experiments) && (i.recommended_experiments[0]?.hypothesis || i.recommended_experiments[0]?.change)) || "관련 페이지와 사용자 행동을 먼저 확인해 주세요.")}</div>
       </div>
     `).join("");
   }
@@ -762,12 +992,18 @@
 
   // ─── 렌더링: UX 개요 ───
   function renderUxOverview(summary, insightData) {
-    const totalSessions = Array.isArray(summary) ? summary.reduce((s, i) => s + (Number(i.sessions) || 0), 0) : 0;
-    const top = Array.isArray(summary) && summary.length ? summary[0] : null;
+    const mergedSummary = mergeLabelSummary(summary);
+    const totalSessions = mergedSummary.reduce((s, i) => s + (Number(i.sessions) || 0), 0);
+    const top = mergedSummary.slice().sort((a, b) => b.sessions - a.sessions)[0] || null;
 
     uxTotalSessions.textContent = totalSessions > 0 ? fmtInt(totalSessions) : "—";
-    uxTopLabel.textContent = top ? labelName(top.label) : "—";
-    renderLabelBars(summary);
+    uxTopLabel.textContent = top && top.sessions > 0 ? labelName(top.label) : "—";
+    if (uxTopLabelHint) {
+      uxTopLabelHint.textContent = top && top.sessions > 0
+        ? `${labelName(top.label)}이 전체 세션의 ${fmtPct(top.share)}로 가장 높습니다. ${labelDescription(top.label)}`
+        : "아직 가장 두드러진 이탈 유형이 감지되지 않았습니다.";
+    }
+    renderLabelBars(mergedSummary);
     renderInsights(insightData);
   }
 
@@ -775,13 +1011,17 @@
   async function render() {
     state.authUser = await fetchAuthMe();
     enforceAuthorizedSiteId();
+    updatePeriodStatus();
+    if (trendChartCard) trendChartCard.innerHTML = '<div class="chartState">불러오는 중…</div>';
 
-    const [sites, exps, sessions, labelSummary, insightData, usersResult] = await Promise.all([
+    const [sites, exps, sessions, labelSummary, insightData, opportunityData, eventSummary, usersResult] = await Promise.all([
       fetchSites(),
       fetchExperiments(),
       fetchSessions(),
       fetchLabelsSummary(),
-      fetchInsights(),
+      fetchInsights(true),
+      fetchInsights(false),
+      fetchEventSummary().catch((error) => ({ ok: false, reason: String(error) })),
       state.authUser?.is_admin === true
         ? fetchUsers().then((users) => ({ users, error: null })).catch((error) => ({ users: [], error: String(error) }))
         : Promise.resolve({ users: [], error: null }),
@@ -810,6 +1050,16 @@
     renderSessions(sessions);
     renderLabelSummary(labelSummary);
     renderUxOverview(labelSummary, insightData);
+    renderOpportunities(Array.isArray(opportunityData?.output?.insights) ? opportunityData.output.insights : []);
+    if (eventSummary?.ok) {
+      renderTrendChart(eventSummary);
+      if (uxSessionHint) {
+        uxSessionHint.textContent = `${getPeriodRange().label} 동안 세션 ${fmtInt(labelSummary.reduce((sum, item) => sum + (Number(item.sessions) || 0), 0))}건 · 이벤트 ${fmtInt(eventSummary.total_events || 0)}건`;
+      }
+    } else if (trendChartCard) {
+      trendChartCard.innerHTML = `<div class="chartState">그래프를 불러오지 못했어요.<br/>${escapeHtml(eventSummary?.reason || "잠시 후 다시 시도해 주세요.")}</div>`;
+      if (uxSessionHint) uxSessionHint.textContent = "세션 카드와 그래프는 선택한 기간 기준으로 집계됩니다.";
+    }
 
     if (state.authUser?.is_admin === true) {
       renderUserSiteOptions();
@@ -862,6 +1112,39 @@
       setSiteInUrl(next);
       updateSiteContextUI();
       render().catch((e) => alert(String(e)));
+    });
+  }
+
+  if (periodPreset) {
+    periodPreset.addEventListener("change", () => {
+      state.periodPreset = String(periodPreset.value || "7d");
+      updatePeriodStatus();
+      const range = getPeriodRange();
+      if (state.periodPreset !== "custom" || (range.fromTs != null && range.toTs != null)) {
+        render().catch((e) => alert(String(e)));
+      }
+    });
+  }
+
+  if (customFromDate) {
+    customFromDate.addEventListener("change", () => {
+      state.customFromDate = String(customFromDate.value || "");
+      updatePeriodStatus();
+      const range = getPeriodRange();
+      if (state.periodPreset === "custom" && range.fromTs != null && range.toTs != null) {
+        render().catch((e) => alert(String(e)));
+      }
+    });
+  }
+
+  if (customToDate) {
+    customToDate.addEventListener("change", () => {
+      state.customToDate = String(customToDate.value || "");
+      updatePeriodStatus();
+      const range = getPeriodRange();
+      if (state.periodPreset === "custom" && range.fromTs != null && range.toTs != null) {
+        render().catch((e) => alert(String(e)));
+      }
     });
   }
 
@@ -928,6 +1211,8 @@
 
   localStorage.setItem(SITE_STORAGE_KEY, getCurrentSiteId());
   setSiteInUrl(getCurrentSiteId());
+  syncPeriodInputs();
+  updatePeriodStatus();
   updateSiteContextUI();
   render().catch((e) => alert(String(e)));
 })();
