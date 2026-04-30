@@ -1206,7 +1206,7 @@ app.get("/api/metrics", requireAuth, requireSiteAccess, async (req, res) => {
 
 app.get("/api/realtime/sessions", requireAuth, requireSiteAccess, async (req, res) => {
   if (!redisSessionStore) {
-    return res.status(503).json({ ok: false, reason: "redis realtime session store disabled" });
+    return res.json({ ok: false, reason: "redis realtime session store disabled", sessions: [] });
   }
 
   const site_id = String(req.query.site_id || "ab-sample");

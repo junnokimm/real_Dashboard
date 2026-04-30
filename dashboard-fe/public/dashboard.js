@@ -100,6 +100,7 @@
   const labelSummaryBody = document.getElementById("labelSummaryBody");
   const sessionsBody = document.getElementById("sessionsBody");
   const insightsList = document.getElementById("insightsList");
+  const sidebarLinks = Array.from(document.querySelectorAll(".sidebarLink[href^='#']"));
   const copilotExperimentKey = document.getElementById("copilotExperimentKey");
   const copilotDraftStatus = document.getElementById("copilotDraftStatus");
   const saveDraftBtn = document.getElementById("saveDraftBtn");
@@ -223,6 +224,58 @@
   function parseDateRangeEnd(value) {
     if (!value) return null;
     return new Date(`${value}T23:59:59.999`).getTime();
+  }
+
+  function getSidebarScrollOffset() {
+    const topbar = document.querySelector(".topbar");
+    const topbarHeight = topbar ? topbar.getBoundingClientRect().height : 0;
+    return Math.ceil(topbarHeight + 28);
+  }
+
+  function setActiveSidebarLink(targetId) {
+    if (!targetId || !sidebarLinks.length) return;
+    sidebarLinks.forEach((link) => {
+      const isActive = link.getAttribute("href") === `#${targetId}`;
+      link.classList.toggle("is-active", isActive);
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  function getSidebarSections() {
+    return sidebarLinks
+      .map((link) => {
+        const id = String(link.getAttribute("href") || "").replace(/^#/, "");
+        const el = id ? document.getElementById(id) : null;
+        return el ? { id, el } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const aTop = a.el.getBoundingClientRect().top + window.scrollY;
+        const bTop = b.el.getBoundingClientRect().top + window.scrollY;
+        return aTop - bTop;
+      });
+  }
+
+  function updateActiveSidebarFromScroll() {
+    const sections = getSidebarSections();
+    if (!sections.length) return;
+    const marker = window.scrollY + getSidebarScrollOffset() + 12;
+    let active = sections[0].id;
+    sections.forEach((section) => {
+      const top = section.el.getBoundingClientRect().top + window.scrollY;
+      if (top <= marker) active = section.id;
+    });
+    setActiveSidebarLink(active);
+  }
+
+  function scrollToSidebarSection(targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const top = target.getBoundingClientRect().top + window.scrollY - getSidebarScrollOffset();
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    setActiveSidebarLink(targetId);
+    if (history.pushState) history.pushState(null, "", `#${targetId}`);
   }
 
   function syncPeriodInputs() {
@@ -1036,25 +1089,59 @@
         : date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
     });
 
+    const tooltipHtml = (index) => `
+      <div class="trendTooltipTitle">${escapeHtml(labels[index])}</div>
+      <div class="trendTooltipRow"><span class="trendTooltipKey"><span class="trendTooltipDot"></span>세션 수</span><strong class="mono">${fmtInt(sessions[index])}</strong></div>
+      <div class="trendTooltipRow"><span class="trendTooltipKey"><span class="trendTooltipDot events"></span>이벤트 수</span><strong class="mono">${fmtInt(events[index])}</strong></div>
+    `;
+
     trendChartCard.innerHTML = `
       <div class="trendChartWrap">
+        <div class="trendTooltip" id="trendTooltip" role="status" aria-live="polite"></div>
         <svg class="trendSvg" viewBox="0 0 ${width} ${height}" role="img" aria-label="세션 수와 이벤트 수 추이 그래프">
-          <line x1="${padX}" y1="${height - padBottom}" x2="${width - padX}" y2="${height - padBottom}" stroke="#d6deed" stroke-width="1" />
-          <polyline fill="none" stroke="#5b76fe" stroke-width="3" points="${toPolyline(sessions)}"></polyline>
-          <polyline fill="none" stroke="#ff7a45" stroke-width="3" points="${toPolyline(events)}"></polyline>
+          ${[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+            const y = padTop + usableHeight * ratio;
+            return `<line x1="${padX}" y1="${y}" x2="${width - padX}" y2="${y}" stroke="#e8eef6" stroke-width="1" stroke-dasharray="4 5" />`;
+          }).join("")}
+          <line x1="${padX}" y1="${height - padBottom}" x2="${width - padX}" y2="${height - padBottom}" stroke="#dbe3ef" stroke-width="1" />
+          <polyline fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${toPolyline(sessions)}"></polyline>
+          <polyline fill="none" stroke="#14b8a6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${toPolyline(events)}"></polyline>
           ${trend.map((item, index) => `
-            <g>
-              <circle cx="${pointX(index)}" cy="${pointY(sessions[index])}" r="4" fill="#5b76fe">
-                <title>${labels[index]} · 세션 ${fmtInt(sessions[index])}</title>
-              </circle>
-              <circle cx="${pointX(index)}" cy="${pointY(events[index])}" r="4" fill="#ff7a45">
-                <title>${labels[index]} · 이벤트 ${fmtInt(events[index])}</title>
-              </circle>
+            <g class="trendPointGroup" tabindex="0" data-index="${index}" data-tooltip="${escapeHtml(tooltipHtml(index))}" data-x="${pointX(index)}" data-y="${Math.min(pointY(sessions[index]), pointY(events[index]))}">
+              <line class="trendHoverLine" x1="${pointX(index)}" y1="${padTop}" x2="${pointX(index)}" y2="${height - padBottom}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 4" />
+              <circle class="trendHoverPoint" cx="${pointX(index)}" cy="${pointY(sessions[index])}" r="7" fill="rgba(59,130,246,.18)"></circle>
+              <circle cx="${pointX(index)}" cy="${pointY(sessions[index])}" r="4.5" fill="#3b82f6"></circle>
+              <circle class="trendHoverPoint" cx="${pointX(index)}" cy="${pointY(events[index])}" r="6" fill="rgba(20,184,166,.18)"></circle>
+              <circle cx="${pointX(index)}" cy="${pointY(events[index])}" r="3.8" fill="#14b8a6"></circle>
+              <rect class="trendHoverBand" x="${Math.max(0, pointX(index) - (usableWidth / Math.max(count - 1, 1) / 2))}" y="0" width="${Math.max(28, usableWidth / Math.max(count - 1, 1))}" height="${height}" fill="transparent"></rect>
             </g>
           `).join("")}
         </svg>
         <div class="trendAxisLabelRow" style="grid-template-columns: repeat(${count}, minmax(0, 1fr));">${labels.map((label) => `<span class="trendAxisLabel">${escapeHtml(label)}</span>`).join("")}</div>
       </div>`;
+
+    const tooltip = trendChartCard.querySelector("#trendTooltip");
+    const svg = trendChartCard.querySelector(".trendSvg");
+    const showTooltip = (group) => {
+      if (!tooltip || !svg || !group) return;
+      const x = Number(group.dataset.x) || 0;
+      const y = Number(group.dataset.y) || 0;
+      const viewBox = svg.viewBox.baseVal;
+      const svgRect = svg.getBoundingClientRect();
+      const left = (x / viewBox.width) * svgRect.width;
+      const top = (y / viewBox.height) * svgRect.height;
+      tooltip.innerHTML = group.dataset.tooltip || "";
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${Math.max(40, top)}px`;
+      tooltip.classList.add("is-visible");
+    };
+    const hideTooltip = () => tooltip?.classList.remove("is-visible");
+    trendChartCard.querySelectorAll(".trendPointGroup").forEach((group) => {
+      group.addEventListener("mouseenter", () => showTooltip(group));
+      group.addEventListener("focus", () => showTooltip(group));
+      group.addEventListener("mouseleave", hideTooltip);
+      group.addEventListener("blur", hideTooltip);
+    });
   }
 
   function renderSdkStatus(summary) {
@@ -1519,6 +1606,19 @@
     }
   });
 
+  if (sidebarLinks.length) {
+    sidebarLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const targetId = String(link.getAttribute("href") || "").replace(/^#/, "");
+        if (!targetId || !document.getElementById(targetId)) return;
+        event.preventDefault();
+        scrollToSidebarSection(targetId);
+      });
+    });
+    window.addEventListener("scroll", updateActiveSidebarFromScroll, { passive: true });
+    window.addEventListener("resize", updateActiveSidebarFromScroll);
+  }
+
   refreshBtn.addEventListener("click", () => {
     if (experimentMetricsDialog?.open) experimentMetricsDialog.close();
     render();
@@ -1674,5 +1774,6 @@
   syncPeriodInputs();
   updatePeriodStatus();
   updateSiteContextUI();
+  updateActiveSidebarFromScroll();
   render().catch((e) => alert(String(e)));
 })();

@@ -12,30 +12,52 @@
 </head>
 <body>
 
-  <!-- ===== 상단 바 ===== -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <div class="title">실험 대시보드</div>
-        <div class="subtitle">실험 운영과 성과, 고객 행동 요약</div>
+  <div class="dashboardShell">
+    <aside class="dashboardSidebar" aria-label="대시보드 메뉴">
+      <div class="sidebarBrand">
+        <div class="sidebarLogo" aria-hidden="true">D</div>
+        <div>
+          <div class="sidebarTitle">Dashboard</div>
+          <div class="sidebarSubtitle">UX Analytics</div>
+        </div>
       </div>
-    </div>
 
-    <div class="topActions">
-      <label class="topLabel" for="siteSelect">대상 사이트</label>
-      <select id="siteSelect" class="selectInput" aria-label="대상 사이트 선택">
-        <option value="">불러오는 중…</option>
-      </select>
-      <span class="topUser" id="authUserLabel"></span>
-      <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
-      <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
-      <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
-      <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
-    </div>
-  </header>
+      <nav class="sidebarNav" aria-label="주요 메뉴">
+        <div class="sidebarNavLabel">메뉴</div>
+        <a class="sidebarLink is-active" href="#summaryRow"><span aria-hidden="true">▦</span>대시보드</a>
+        <a class="sidebarLink" href="#trendPanel"><span aria-hidden="true">⌁</span>모니터링</a>
+        <a class="sidebarLink" href="#experimentPanel"><span aria-hidden="true">◈</span>실험 관리</a>
+        <a class="sidebarLink" href="#journeyCard"><span aria-hidden="true">↝</span>사용자 흐름</a>
+        <a class="sidebarLink" href="#insightsCard"><span aria-hidden="true">✦</span>AI 인사이트</a>
+        <a class="sidebarLink" href="#sessionsCard"><span aria-hidden="true">♙</span>세션 로그</a>
+      </nav>
+    </aside>
 
-  <main class="wrap">
+    <div class="dashboardMain">
+      <!-- ===== 상단 바 ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="topbarIcon" aria-hidden="true">▥</div>
+          <div>
+            <div class="title">대시보드</div>
+            <div class="subtitle">실험 운영과 성과, 고객 행동 요약</div>
+          </div>
+        </div>
+
+        <div class="topActions">
+          <label class="topLabel" for="siteSelect">대상 사이트</label>
+          <select id="siteSelect" class="selectInput" aria-label="대상 사이트 선택">
+            <option value="">불러오는 중…</option>
+          </select>
+          <span class="topUser" id="authUserLabel"></span>
+          <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
+          <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
+          <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
+          <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
+        </div>
+      </header>
+
+      <main class="wrap">
 
     <!-- ===== 0. 기간 설정 ===== -->
     <section class="card periodCard">
@@ -93,7 +115,7 @@
     </section>
 
     <!-- ===== 2. 기간별 세션/이벤트 추이 ===== -->
-    <section class="card">
+    <section class="card trendPanel" id="trendPanel">
       <div class="cardHead">
         <div>
           <h2>기간별 세션 추이</h2>
@@ -110,7 +132,7 @@
     </section>
 
     <!-- ===== 3. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
-    <section class="twoCol">
+    <section class="twoCol chartSidePanel">
       <div class="card">
         <div class="cardHead">
           <h2>유형별 비중</h2>
@@ -142,7 +164,7 @@
     </section>
 
     <!-- ===== 4. A/B 실험 관리 ===== -->
-    <section class="card">
+    <section class="card experimentPanel" id="experimentPanel">
       <div class="cardHead">
         <div>
           <h2>A/B 실험 관리</h2>
@@ -321,7 +343,9 @@
       </details>
     </div>
 
-  </main>
+      </main>
+    </div>
+  </div>
 
   <!-- ===== 사용자 관리 모달 (admin 전용) ===== -->
   <dialog id="userManagementDialog" class="dialog">
