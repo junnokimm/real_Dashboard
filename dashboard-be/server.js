@@ -1176,6 +1176,8 @@ app.get("/api/config", (req, res) => {
 app.get("/api/metrics", requireAuth, requireSiteAccess, async (req, res) => {
   const site_id = req.query.site_id || "ab-sample";
   const key = String(req.query.key || "");
+  const from_ts = toNum(req.query.from_ts);
+  const to_ts = toNum(req.query.to_ts);
   if (!key) return res.status(400).json({ ok: false, reason: "missing key" });
 
   const experiment = experimentStore.getByKey(site_id, key);
@@ -1183,7 +1185,7 @@ app.get("/api/metrics", requireAuth, requireSiteAccess, async (req, res) => {
     return res.status(404).json({ ok: false, reason: "experiment not found" });
   }
 
-  if (redisMetricsStore) {
+  if (redisMetricsStore && typeof from_ts !== "number" && typeof to_ts !== "number") {
     const realtime = await redisMetricsStore.getExperimentMetrics({
       siteId: site_id,
       key,
@@ -1195,7 +1197,7 @@ app.get("/api/metrics", requireAuth, requireSiteAccess, async (req, res) => {
     }
   }
 
-  const out = metricsReadModel.getExperimentMetrics({ siteId: site_id, key });
+  const out = metricsReadModel.getExperimentMetrics({ siteId: site_id, key, fromTs: from_ts, toTs: to_ts });
   if (!out.ok && out.reason === "experiment not found") {
     return res.status(404).json(out);
   }

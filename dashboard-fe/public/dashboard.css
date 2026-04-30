@@ -187,6 +187,56 @@ body {
   flex-wrap: wrap;
 }
 
+.sdkStatusInline {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.sdkStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+  background: #f4f6fb;
+  color: var(--color-text-secondary);
+}
+
+.sdkStatusBadge.normal {
+  border-color: rgba(0,180,115,.45);
+  background: rgba(0,180,115,.1);
+  color: var(--pastel-teal-dark);
+}
+
+.sdkStatusBadge.caution {
+  border-color: rgba(116,96,25,.35);
+  background: var(--pastel-orange);
+  color: var(--pastel-yellow-dark);
+}
+
+.sdkStatusBadge.missing {
+  border-color: rgba(196,30,30,.35);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.sdkStatusBadge.unknown {
+  border-color: var(--color-border);
+  background: #f4f6fb;
+  color: var(--color-text-secondary);
+}
+
+.sdkStatusText {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
 /* ===== 요약 카드 (최상단, 가장 중요한 숫자) ===== */
 .summaryRow {
   display: grid;
@@ -434,6 +484,150 @@ h3 {
   text-overflow: ellipsis;
 }
 
+.experimentManager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.experimentPicker {
+  align-self: flex-start;
+}
+
+.compactEmpty {
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-input);
+  border-radius: var(--radius-card);
+  background: #fafbfc;
+}
+
+.experimentSummaryCard {
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-card);
+  background: #fafbfc;
+  padding: var(--space-4);
+}
+
+.experimentSummaryHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+  margin-bottom: var(--space-4);
+}
+
+.experimentSummaryTitle {
+  font-size: 24px;
+}
+
+.experimentSummaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.experimentSummaryGrid,
+.experimentDialogMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.summaryMiniCard {
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--color-border-input);
+  background: #fff;
+  padding: var(--space-3);
+}
+
+.summaryMiniValue {
+  margin-top: 6px;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.experimentSummaryActions {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.journeyFlow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(160px, 1fr));
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.journeyStep {
+  position: relative;
+  min-width: 160px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-input);
+  background: #fafbfc;
+  padding: var(--space-4);
+}
+
+.journeyStep + .journeyStep::before {
+  content: "→";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.journeyStep.highDrop {
+  border-color: rgba(196,30,30,.35);
+  background: #fff7f7;
+}
+
+.journeyStepTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.journeyStepName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.journeyStats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.journeyStatValue {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.journeyHint {
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 /* ===== 빈 상태 (empty state) ===== */
 .emptyState {
   text-align: center;
@@ -590,6 +784,23 @@ tr:hover td { background: rgba(91, 118, 254, 0.03); }
   margin: var(--space-2) 0;
 }
 
+.metricCompareRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+.metricDelta {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border-input);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .big {
   font-size: 18px;
   font-weight: 700;
@@ -735,8 +946,65 @@ tr:hover td { background: rgba(91, 118, 254, 0.03); }
 /* ===== 인사이트 그리드 ===== */
 .insightsGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-3);
+}
+
+.productInsightSummary {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-input);
+  background: #fafbfc;
+  padding: var(--space-4);
+}
+
+.productInsightSummaryText {
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.productInsightBlocks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.productInsightBlock {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-input);
+  background: #fff;
+  padding: var(--space-4);
+}
+
+.productInsightBlock h3 {
+  margin-bottom: var(--space-2);
+}
+
+.productInsightProblemCard {
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--color-border-input);
+  background: #fafbfc;
+  padding: var(--space-3);
+}
+
+.productInsightProblemCard + .productInsightProblemCard {
+  margin-top: var(--space-3);
+}
+
+.productInsightMeta {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.footerStatusRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.smallStatusDetails {
+  width: min(100%, 420px);
 }
 
 .insightCard {
@@ -873,6 +1141,50 @@ details[open] > .detailsSummary::before {
   margin-top: var(--space-6);
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-border-input);
+}
+
+.experimentDialog {
+  max-width: 980px;
+}
+
+.experimentDialogInner {
+  max-height: min(88vh, 940px);
+}
+
+.experimentDialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.experimentDialogHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.experimentMetricsGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.experimentCountsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.experimentClickGrid {
+  align-items: stretch;
+}
+
+.experimentInterpretation {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-input);
+  background: #f7f8fa;
+  padding: var(--space-4);
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 /* ===== 폼 필드 ===== */
@@ -1269,6 +1581,11 @@ details[open] > .detailsSummary::before {
   .metricsGrid { grid-template-columns: repeat(2, 1fr); }
   .insightsGrid { grid-template-columns: 1fr; }
   .distributionLayout { grid-template-columns: 1fr; }
+  .experimentSummaryGrid,
+  .experimentDialogMetaGrid,
+  .experimentMetricsGrid,
+  .experimentCountsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .productInsightBlocks { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
@@ -1276,10 +1593,19 @@ details[open] > .detailsSummary::before {
   .topActions { justify-content: flex-start; }
   .periodHead { align-items: flex-start; }
   .periodControls { width: 100%; }
+  .experimentSummaryHead,
+  .experimentDialogHero { flex-direction: column; }
+  .experimentSummaryMeta { justify-content: flex-start; }
+  .journeyFlow { grid-template-columns: 1fr; overflow-x: visible; }
+  .journeyStep + .journeyStep::before { content: "↓"; left: 50%; top: -14px; transform: translateX(-50%); }
 }
 
 @media (max-width: 640px) {
   .metricsGrid { grid-template-columns: 1fr; }
   .chatbotDock { right: var(--space-3); bottom: var(--space-3); }
   .chatbotPanel { width: min(100vw - 24px, 400px); }
+  .experimentSummaryGrid,
+  .experimentDialogMetaGrid,
+  .experimentMetricsGrid,
+  .experimentCountsGrid { grid-template-columns: 1fr; }
 }

@@ -1,5 +1,23 @@
 function createMetricsReadModel({ eventStore, experimentStore }) {
-  function getExperimentMetrics({ siteId, key }) {
+  function getEventTs(event) {
+    if (typeof event?.ts === "number") return event.ts;
+    if (typeof event?.received_at === "number") return event.received_at;
+    return null;
+  }
+
+  function resolveClickLabel(props) {
+    if (!props || typeof props !== "object") return "(no_element_id)";
+    return props.track_id
+      || props.data_track_id
+      || props.aria_label
+      || props.button_text
+      || props.text_content
+      || props.element_id
+      || props.tag_name
+      || "(no_element_id)";
+  }
+
+  function getExperimentMetrics({ siteId, key, fromTs, toTs }) {
     const exp = experimentStore.getByKey(siteId, key);
     if (!exp) {
       return { ok: false, reason: "experiment not found" };
@@ -10,6 +28,10 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
 
     for (const e of eventStore.readAll()) {
       if (e.site_id !== siteId) continue;
+      const ts = getEventTs(e);
+      if ((typeof fromTs === "number" || typeof toTs === "number") && typeof ts !== "number") continue;
+      if (typeof fromTs === "number" && ts < fromTs) continue;
+      if (typeof toTs === "number" && ts > toTs) continue;
       const exps = Array.isArray(e.experiments) ? e.experiments : [];
       const hit = exps.find((item) => item && item.key === key);
       if (!hit) continue;
@@ -21,6 +43,7 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
         path: e.path,
         props: e.props || {},
         exp_variant: hit.variant || "A",
+        ts,
       });
     }
 
@@ -32,6 +55,8 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
       conversions: 0,
       sessionStats: new Map(),
       clickElements: new Map(),
+      durationTotalMs: 0,
+      depthTotal: 0,
     });
 
     const byVariant = { A: init(), B: init() };
@@ -42,9 +67,23 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
       if (e.session_id) bucket.sessions.add(e.session_id);
 
       const sid = e.session_id || "no_session";
-      if (!bucket.sessionStats.has(sid)) bucket.sessionStats.set(sid, { pageViews: 0, totalEvents: 0 });
+      if (!bucket.sessionStats.has(sid)) {
+        bucket.sessionStats.set(sid, {
+          pageViews: 0,
+          totalEvents: 0,
+          firstTs: e.ts,
+          lastTs: e.ts,
+          dwellMs: 0,
+          paths: new Set(),
+        });
+      }
       const stats = bucket.sessionStats.get(sid);
       stats.totalEvents += 1;
+      if (typeof e.ts === "number") {
+        if (typeof stats.firstTs !== "number" || e.ts < stats.firstTs) stats.firstTs = e.ts;
+        if (typeof stats.lastTs !== "number" || e.ts > stats.lastTs) stats.lastTs = e.ts;
+      }
+      if (e.path) stats.paths.add(e.path);
 
       if (e.event_name === "page_view") {
         bucket.page_views += 1;
@@ -52,17 +91,26 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
       }
       if (e.event_name === "click") {
         bucket.clicks += 1;
-        const elementId = e.props?.element_id || "(no_element_id)";
+        const elementId = resolveClickLabel(e.props);
         bucket.clickElements.set(elementId, (bucket.clickElements.get(elementId) || 0) + 1);
       }
       if (goals.includes(e.event_name)) bucket.conversions += 1;
+      if (e.event_name === "dwell_time") {
+        const dwellMs = Number(e.props?.dwell_ms || 0);
+        if (Number.isFinite(dwellMs) && dwellMs > 0) stats.dwellMs += dwellMs;
+      }
     }
 
     function finalize(bucket) {
       const sessions = bucket.sessions.size;
       let bounces = 0;
+      let durationTotalMs = 0;
+      let depthTotal = 0;
       for (const stats of bucket.sessionStats.values()) {
         if (stats.pageViews === 1 && stats.totalEvents === 1) bounces += 1;
+        const fallbackDuration = (typeof stats.lastTs === "number" && typeof stats.firstTs === "number") ? Math.max(0, stats.lastTs - stats.firstTs) : 0;
+        durationTotalMs += stats.dwellMs > 0 ? stats.dwellMs : fallbackDuration;
+        depthTotal += stats.paths.size || stats.pageViews || 0;
       }
       return {
         users: bucket.users.size,
@@ -70,13 +118,15 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
         page_views: bucket.page_views,
         clicks: bucket.clicks,
         conversions: bucket.conversions,
-        cvr: sessions > 0 ? bucket.conversions / sessions : 0,
-        ctr: bucket.page_views > 0 ? bucket.clicks / bucket.page_views : 0,
-        bounce_rate: sessions > 0 ? bounces / sessions : 0,
+        cvr: sessions > 0 ? bucket.conversions / sessions : null,
+        ctr: bucket.page_views > 0 ? bucket.clicks / bucket.page_views : null,
+        bounce_rate: sessions > 0 ? bounces / sessions : null,
+        avg_duration_ms: sessions > 0 ? durationTotalMs / sessions : null,
+        avg_depth: sessions > 0 ? depthTotal / sessions : null,
         top_clicked_elements: Array.from(bucket.clickElements.entries())
           .sort((a, b) => b[1] - a[1])
           .slice(0, 10)
-          .map(([element_id, count]) => ({ element_id, count })),
+          .map(([element_id, count]) => ({ element_id, element_label: element_id, count })),
       };
     }
 
@@ -91,6 +141,10 @@ function createMetricsReadModel({ eventStore, experimentStore }) {
         url_prefix: exp.url_prefix,
         version: exp.version,
         published_at: exp.published_at,
+        updated_at: exp.updated_at,
+        archived_at: exp.archived_at || null,
+        traffic: exp.traffic || null,
+        variants: exp.variants || { A: [], B: [] },
       },
       A: finalize(byVariant.A),
       B: finalize(byVariant.B),
