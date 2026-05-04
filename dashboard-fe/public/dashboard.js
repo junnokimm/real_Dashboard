@@ -1088,6 +1088,17 @@
         ? date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
         : date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
     });
+    const maxAxisLabels = state.periodPreset === "today"
+      ? (window.innerWidth <= 640 ? 6 : 8)
+      : (window.innerWidth <= 640 ? 5 : 7);
+    const axisStep = count <= maxAxisLabels ? 1 : Math.ceil((count - 1) / (maxAxisLabels - 1));
+    const axisLabels = labels.map((label, index) => {
+      const visible = count <= maxAxisLabels
+        || index === 0
+        || index === count - 1
+        || index % axisStep === 0;
+      return { label, visible };
+    });
 
     const tooltipHtml = (index) => `
       <div class="trendTooltipTitle">${escapeHtml(labels[index])}</div>
@@ -1117,7 +1128,7 @@
             </g>
           `).join("")}
         </svg>
-        <div class="trendAxisLabelRow" style="grid-template-columns: repeat(${count}, minmax(0, 1fr));">${labels.map((label) => `<span class="trendAxisLabel">${escapeHtml(label)}</span>`).join("")}</div>
+        <div class="trendAxisLabelRow" style="grid-template-columns: repeat(${count}, minmax(0, 1fr));">${axisLabels.map((item) => `<span class="trendAxisLabel${item.visible ? "" : " is-empty"}" title="${escapeHtml(item.label)}">${item.visible ? escapeHtml(item.label) : ""}</span>`).join("")}</div>
       </div>`;
 
     const tooltip = trendChartCard.querySelector("#trendTooltip");
