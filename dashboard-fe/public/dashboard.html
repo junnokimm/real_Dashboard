@@ -4,73 +4,155 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>실험 대시보드</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/theme.css" />
   <link rel="stylesheet" href="/dashboard.css" />
 </head>
 <body>
 
-  <!-- ===== 상단 바 ===== -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <div class="title">실험 대시보드</div>
-        <div class="subtitle">실험 운영과 성과, 고객 행동 요약</div>
+  <div class="dashboardShell">
+    <aside class="dashboardSidebar" aria-label="대시보드 메뉴">
+      <div class="sidebarBrand">
+        <div class="sidebarLogo" aria-hidden="true">D</div>
+        <div>
+          <div class="sidebarTitle">Dashboard</div>
+          <div class="sidebarSubtitle">UX Analytics</div>
+        </div>
       </div>
-    </div>
 
-    <div class="topActions">
-      <label class="topLabel" for="siteSelect">대상 사이트</label>
-      <select id="siteSelect" class="selectInput" aria-label="대상 사이트 선택">
-        <option value="">불러오는 중…</option>
-      </select>
-      <span class="topUser" id="authUserLabel"></span>
-      <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
-      <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
-      <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
-      <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
-    </div>
-  </header>
+      <nav class="sidebarNav" aria-label="주요 메뉴">
+        <div class="sidebarNavLabel">메뉴</div>
+        <a class="sidebarLink is-active" href="#summaryRow"><span aria-hidden="true">▦</span>대시보드</a>
+        <a class="sidebarLink" href="#trendPanel"><span aria-hidden="true">⌁</span>모니터링</a>
+        <a class="sidebarLink" href="#experimentPanel"><span aria-hidden="true">◈</span>실험 관리</a>
+        <a class="sidebarLink" href="#journeyCard"><span aria-hidden="true">↝</span>사용자 흐름</a>
+        <a class="sidebarLink" href="#insightsCard"><span aria-hidden="true">✦</span>AI 인사이트</a>
+        <a class="sidebarLink" href="#sessionsCard"><span aria-hidden="true">♙</span>세션 로그</a>
+      </nav>
+    </aside>
 
-  <main class="wrap">
+    <div class="dashboardMain">
+      <!-- ===== 상단 바 ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="topbarIcon" aria-hidden="true">▥</div>
+          <div>
+            <div class="title">대시보드</div>
+            <div class="subtitle">실험 운영과 성과, 고객 행동 요약</div>
+          </div>
+        </div>
+
+        <div class="topActions">
+          <label class="topLabel" for="siteSelect">대상 사이트</label>
+          <select id="siteSelect" class="selectInput" aria-label="대상 사이트 선택">
+            <option value="">불러오는 중…</option>
+          </select>
+          <span class="topUser" id="authUserLabel"></span>
+          <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
+          <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
+          <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
+          <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
+        </div>
+      </header>
+
+      <main class="wrap">
+
+    <!-- ===== 0. 기간 설정 ===== -->
+    <section class="card periodCard">
+      <div class="cardHead periodHead">
+        <div>
+          <h2>기간 설정</h2>
+          <div class="muted">주요 카드와 그래프는 선택한 기간 기준으로 집계됩니다.</div>
+        </div>
+        <div class="periodControls">
+          <label class="filterField" for="periodPreset">
+            <span>기간</span>
+            <select id="periodPreset" class="selectInput" aria-label="기간 선택">
+              <option value="today">오늘</option>
+              <option value="7d" selected>최근 7일</option>
+              <option value="30d">최근 30일</option>
+              <option value="custom">사용자 지정</option>
+            </select>
+          </label>
+          <div class="dateRangeInputs" id="customDateRange" hidden>
+            <label class="filterField" for="customFromDate">
+              <span>시작일</span>
+              <input id="customFromDate" class="dateInput" type="date" />
+            </label>
+            <label class="filterField" for="customToDate">
+              <span>종료일</span>
+              <input id="customToDate" class="dateInput" type="date" />
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="summaryHint" id="periodStatusText">최근 7일 기준으로 주요 지표를 집계합니다.</div>
+      <div class="sdkStatusInline" id="sdkStatusInline">
+        <span class="sdkStatusBadge unknown" id="sdkStatusBadge">수신 정보 없음</span>
+        <span class="sdkStatusText" id="sdkStatusText">SDK 연동 상태를 아직 판단할 수 없습니다.</span>
+      </div>
+    </section>
 
     <!-- ===== 1. 요약 카드 (좌상단 = 가장 중요) ===== -->
     <section class="summaryRow" id="summaryRow">
       <div class="summaryCard">
         <div class="summaryLabel">세션 수</div>
         <div class="summaryValue mono" id="uxTotalSessions">—</div>
-        <div class="summaryHint">이 사이트로 잡힌 방문 세션 합계</div>
+        <div class="summaryHint" id="uxSessionHint">이 사이트로 잡힌 방문 세션 합계</div>
       </div>
       <div class="summaryCard">
         <div class="summaryLabel">가장 많은 유형</div>
         <div class="summaryValue" id="uxTopLabel">—</div>
-        <div class="summaryHint">지금 트래픽에서 비중이 가장 큰 패턴</div>
+        <div class="summaryHint" id="uxTopLabelHint">지금 트래픽에서 비중이 가장 큰 패턴</div>
       </div>
       <div class="summaryCard accent">
-        <div class="summaryLabel">긴급 제안</div>
+        <div class="summaryLabel">오늘 먼저 확인할 문제</div>
         <div class="summaryValue mono" id="uxHighPriorityCount">—</div>
-        <div class="summaryHint">‘긴급’으로 표시된 제안 개수</div>
+        <div class="summaryHint" id="uxPriorityHint">우선 확인이 필요한 항목 수</div>
       </div>
     </section>
 
-    <!-- ===== 2. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
-    <section class="twoCol">
+    <!-- ===== 2. 기간별 세션/이벤트 추이 ===== -->
+    <section class="card trendPanel" id="trendPanel">
+      <div class="cardHead">
+        <div>
+          <h2>기간별 세션 추이</h2>
+          <div class="muted">선택한 기간 동안 수집된 세션 수와 이벤트 수의 변화를 보여줍니다.</div>
+        </div>
+        <div class="chartLegend" id="trendLegend">
+          <span class="legendItem"><span class="legendDot sessions"></span>세션 수</span>
+          <span class="legendItem"><span class="legendDot events"></span>이벤트 수</span>
+        </div>
+      </div>
+      <div id="trendChartCard" class="trendChartCard">
+        <div class="chartState">불러오는 중…</div>
+      </div>
+    </section>
+
+    <!-- ===== 3. 고객 유형 분포 + 주요 개선 기회 (근접성) ===== -->
+    <section class="twoCol chartSidePanel">
       <div class="card">
         <div class="cardHead">
           <h2>유형별 비중</h2>
           <div class="muted">패턴마다 세션이 얼마나 왔는지</div>
         </div>
-        <div id="labelBars" class="barList">
-          <div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>
+        <div class="distributionLayout">
+          <div class="distributionDonutWrap">
+            <div id="labelDonut" class="distributionDonut empty">
+              <div class="distributionDonutCenter">
+                <strong id="labelDonutTotal">0</strong>
+                <span>세션</span>
+              </div>
+            </div>
+          </div>
+          <div id="labelBars" class="barList">
+            <div class="emptyState">세션 데이터가 없어요. 이벤트가 쌓이면 여기에 그려집니다.</div>
+          </div>
         </div>
       </div>
       <div class="card">
         <div class="cardHead">
           <h2>먼저 볼 만한 포인트</h2>
-          <div class="muted">인사이트에서 뽑은 상위 이슈</div>
+          <div class="muted">매일 오전 08:00 기준으로 업데이트되는 우선 확인 항목</div>
         </div>
         <div id="opportunityList" class="opportunityList">
           <div class="emptyState">인사이트가 생기면 요약이 여기에 올라옵니다.</div>
@@ -78,11 +160,65 @@
       </div>
     </section>
 
-    <!-- ===== 3. 실험 관리 ===== -->
-    <section class="card">
+    <!-- ===== 4. A/B 실험 관리 ===== -->
+    <section class="card experimentPanel" id="experimentPanel">
       <div class="cardHead">
-        <h2>실험 관리</h2>
+        <div>
+          <h2>A/B 실험 관리</h2>
+          <div class="muted">진행 중이거나 종료된 실험의 핵심 성과를 비교합니다.</div>
+        </div>
         <div class="muted">사이트 ID <span class="mono" id="siteIdText"></span></div>
+      </div>
+
+      <div class="experimentManager">
+        <label class="filterField experimentPicker" for="experimentSelect">
+          <span>실험 선택</span>
+          <select id="experimentSelect" class="selectInput" aria-label="실험 선택">
+            <option value="">불러오는 중…</option>
+          </select>
+        </label>
+
+        <div id="experimentSummaryEmpty" class="emptyState compactEmpty" hidden>
+          선택한 실험의 요약을 불러오는 중이거나, 아직 확인할 데이터가 없습니다.
+        </div>
+
+        <div id="experimentSummaryCard" class="experimentSummaryCard" hidden>
+          <div class="experimentSummaryHead">
+            <div>
+              <div class="summaryLabel">선택된 실험</div>
+              <div class="summaryValue experimentSummaryTitle" id="experimentSummaryTitle">—</div>
+              <div class="summaryHint" id="experimentSummaryPeriod">실험 기간 정보를 확인 중입니다.</div>
+            </div>
+            <div class="experimentSummaryMeta">
+              <span id="experimentSummaryStatus" class="badge label">—</span>
+              <span id="experimentSummaryLead" class="badge low">우세 variant 판단 전</span>
+            </div>
+          </div>
+
+          <div class="experimentSummaryGrid">
+            <div class="summaryMiniCard">
+              <div class="summaryLabel">Variant A</div>
+              <div class="summaryMiniValue" id="experimentVariantAName">Variant A</div>
+            </div>
+            <div class="summaryMiniCard">
+              <div class="summaryLabel">Variant B</div>
+              <div class="summaryMiniValue" id="experimentVariantBName">Variant B</div>
+            </div>
+            <div class="summaryMiniCard">
+              <div class="summaryLabel">총 참여 세션 수</div>
+              <div class="summaryMiniValue mono" id="experimentParticipantSessions">—</div>
+            </div>
+            <div class="summaryMiniCard">
+              <div class="summaryLabel">선택 기간 결과</div>
+              <div class="summaryMiniValue" id="experimentPeriodResultStatus">불러오는 중…</div>
+            </div>
+          </div>
+
+          <div class="experimentSummaryActions">
+            <button class="btnPrimary" id="openExperimentResultsBtn" type="button">결과 자세히 보기</button>
+            <div class="summaryHint" id="experimentSummaryHint">전환율, 이탈률, 체류 시간, 방문 깊이, 클릭 요소를 비교합니다.</div>
+          </div>
+        </div>
       </div>
 
       <div id="expEmptyState" class="emptyState" style="display:none;">
@@ -106,51 +242,6 @@
           </thead>
           <tbody id="expTbody"></tbody>
         </table>
-      </div>
-    </section>
-
-    <!-- ===== 4. 실험 성과 (Metrics) — 실험 선택 시 표시 ===== -->
-    <section class="card" id="metricsCard" style="display:none;">
-      <div class="cardHead">
-        <h2>실험 결과</h2>
-        <div class="muted">보고 있는 실험 <span class="mono" id="metricKey">—</span></div>
-      </div>
-
-      <div class="metricsGrid">
-        <div class="metricBlock">
-          <div class="metricTitle">전환율 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-cvr">?</button></div>
-          <div class="helpPopover" id="help-metric-cvr" role="tooltip">목표(예: 결제 완료)를 채운 세션 비율이에요. B가 A보다 높으면 바꾼 쪽이 나은 편일 수 있어요.</div>
-          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="cvrA">—</span></div>
-          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="cvrB">—</span></div>
-        </div>
-        <div class="metricBlock">
-          <div class="metricTitle">클릭률 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-ctr">?</button></div>
-          <div class="helpPopover" id="help-metric-ctr" role="tooltip">화면을 본 뒤 클릭까지 이어진 비율이에요. 버튼·링크가 잘 보이는지 가늠할 때 씁니다.</div>
-          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="ctrA">—</span></div>
-          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="ctrB">—</span></div>
-        </div>
-        <div class="metricBlock">
-          <div class="metricTitle">이탈률 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-bounce">?</button></div>
-          <div class="helpPopover" id="help-metric-bounce" role="tooltip">첫 화면만 보고 클릭 없이 나간 세션 비율이에요. 높으면 첫 화면에서 다음 행동이 잘 안 보일 수 있어요.</div>
-          <div class="metricRow"><span class="pill">A</span><span class="big mono" id="brA">—</span></div>
-          <div class="metricRow"><span class="pill b">B</span><span class="big mono" id="brB">—</span></div>
-        </div>
-        <div class="metricBlock">
-          <div class="metricTitle">건수 <button class="helpBtn" type="button" aria-expanded="false" data-help-target="help-metric-counts">?</button></div>
-          <div class="helpPopover" id="help-metric-counts" role="tooltip">A·B 각각 방문자·세션·화면 조회·클릭·전환 건수예요. 위 비율을 해석할 때 같이 보면 좋아요.</div>
-          <div class="kv mono" id="countsBox">—</div>
-        </div>
-      </div>
-
-      <div class="twoCol" style="margin-top:var(--space-3);">
-        <div class="metricBlock">
-          <div class="metricTitle">클릭 많은 요소 · A</div>
-          <div class="mono list" id="topA">—</div>
-        </div>
-        <div class="metricBlock">
-          <div class="metricTitle">클릭 많은 요소 · B</div>
-          <div class="mono list" id="topB">—</div>
-        </div>
       </div>
     </section>
 
@@ -180,40 +271,54 @@
       </div>
     </section>
 
-    <!-- ===== 6. 최근 세션 ===== -->
-    <section class="card" id="sessionsCard">
+    <section class="card" id="journeyCard">
       <div class="cardHead">
-        <h2>최근 세션</h2>
-        <div class="muted" id="sessionsSourceLabel">최근 방문 기록</div>
+        <div>
+          <h2>사용자 이동 흐름</h2>
+          <div class="muted">선택한 기간 동안 사용자가 어떤 페이지 흐름으로 이동하고, 어느 단계에서 이탈하는지 보여줍니다.</div>
+        </div>
       </div>
-
-      <div class="tableWrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>세션 ID</th>
-              <th>유형</th>
-              <th>분류 점수</th>
-              <th>체류</th>
-              <th>화면 조회</th>
-              <th>클릭</th>
-              <th>방문 깊이</th>
-              <th>퍼널</th>
-              <th>결제</th>
-            </tr>
-          </thead>
-          <tbody id="sessionsBody">
-            <tr><td colspan="9" class="emptyState">세션 데이터가 없어요.</td></tr>
-          </tbody>
-        </table>
+      <div id="journeyFlow" class="journeyFlow">
+        <div class="emptyState">선택한 기간에 수집된 이동 흐름 데이터가 없습니다.</div>
       </div>
     </section>
 
+    <!-- TODO(phase-3): 최근 세션은 이동 흐름 시각화로 점진 대체 -->
+    <!-- ===== 6. 최근 세션 ===== -->
+    <details class="card detailsCard" id="sessionsCard">
+      <summary class="detailsSummary">최근 세션 상세 보기 <span class="muted" id="sessionsSourceLabel">최근 방문 기록</span></summary>
+      <div class="detailsBody">
+        <div class="tableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>세션 ID</th>
+                <th>유형</th>
+                <th>분류 점수</th>
+                <th>체류</th>
+                <th>화면 조회</th>
+                <th>클릭</th>
+                <th>방문 깊이</th>
+                <th>퍼널</th>
+                <th>결제</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody">
+              <tr><td colspan="9" class="emptyState">세션 데이터가 없어요.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <!-- TODO(phase-3): AI 인사이트는 전체 프로덕트 관점 서술형으로 재구성 -->
     <!-- ===== 7. 개선 제안 (Insights) ===== -->
     <section class="card" id="insightsCard">
       <div class="cardHead">
-        <h2>인사이트</h2>
-        <div class="muted">가능한 원인, 확인 방법, 다음 실험 아이디어</div>
+        <div>
+          <h2>AI UX 인사이트</h2>
+          <div class="muted">선택한 기간의 세션, 유형, 이동 흐름을 바탕으로 전체 프로덕트 관점에서 요약합니다.</div>
+        </div>
       </div>
 
       <div id="insightsList" class="insightsGrid">
@@ -221,20 +326,23 @@
       </div>
     </section>
 
-    <!-- ===== 8. 빠른 테스트 (접기) ===== -->
-    <details class="card detailsCard">
-      <summary class="detailsSummary">연동 점검 <span class="muted">스크립트가 사이트에 붙었는지</span></summary>
-      <div class="detailsBody">
-        <div class="btnRow" id="quickTestLinks">
-          <span class="emptyState">미리볼 주소가 설정돼 있지 않아요.</span>
+    <div class="footerStatusRow">
+      <details class="card detailsCard smallStatusDetails">
+        <summary class="detailsSummary">연동 상세 보기 <span class="muted">SDK 미리보기 링크와 확인용 정보</span></summary>
+        <div class="detailsBody">
+          <div class="btnRow" id="quickTestLinks">
+            <span class="emptyState">미리볼 주소가 설정돼 있지 않아요.</span>
+          </div>
+          <div class="muted" id="quickTestHint" style="margin-top:var(--space-2);">
+            한 브라우저에서는 A·B 중 하나에 고정돼요. 다른 조합을 보려면 시크릿 창을 쓰면 됩니다.
+          </div>
         </div>
-        <div class="muted" id="quickTestHint" style="margin-top:var(--space-2);">
-          한 브라우저에서는 A·B 중 하나에 고정돼요. 다른 조합을 보려면 시크릿 창을 쓰면 됩니다.
-        </div>
-      </div>
-    </details>
+      </details>
+    </div>
 
-  </main>
+      </main>
+    </div>
+  </div>
 
   <!-- ===== 사용자 관리 모달 (admin 전용) ===== -->
   <dialog id="userManagementDialog" class="dialog">
@@ -302,6 +410,104 @@
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===== 실험 결과 모달 ===== -->
+  <dialog id="experimentMetricsDialog" class="dialog experimentDialog">
+    <div class="dialogInner experimentDialogInner">
+      <div class="dialogHeader">
+        <div>
+          <h2>실험 결과</h2>
+          <div class="muted">보고 있는 실험 <span class="mono" id="metricKey">—</span></div>
+        </div>
+        <button class="btnGhost" id="closeExperimentDialogBtn" type="button">닫기</button>
+      </div>
+
+      <div class="dialogBody experimentDialogBody">
+        <div class="experimentDialogHero">
+          <div>
+            <div class="summaryValue experimentSummaryTitle" id="modalExperimentTitle">—</div>
+            <div class="summaryHint" id="modalExperimentPeriod">실험 기간을 확인 중입니다.</div>
+          </div>
+          <div class="experimentSummaryMeta">
+            <span id="modalExperimentStatus" class="badge label">—</span>
+            <span id="modalExperimentLead" class="badge low">우세 variant 판단 전</span>
+          </div>
+        </div>
+
+        <div class="experimentDialogMetaGrid">
+          <div class="summaryMiniCard">
+            <div class="summaryLabel">총 참여 세션 수</div>
+            <div class="summaryMiniValue mono" id="modalParticipantSessions">—</div>
+          </div>
+          <div class="summaryMiniCard">
+            <div class="summaryLabel">선택 기간 결과</div>
+            <div class="summaryMiniValue" id="modalPeriodResultStatus">불러오는 중…</div>
+          </div>
+          <div class="summaryMiniCard">
+            <div class="summaryLabel">Variant A</div>
+            <div class="summaryMiniValue" id="modalVariantAName">Variant A</div>
+          </div>
+          <div class="summaryMiniCard">
+            <div class="summaryLabel">Variant B</div>
+            <div class="summaryMiniValue" id="modalVariantBName">Variant B</div>
+          </div>
+        </div>
+
+        <div class="metricsGrid experimentMetricsGrid">
+          <div class="metricBlock">
+            <div class="metricTitle">전환율</div>
+            <div class="metricCompareRow"><span class="pill">A</span><span class="big mono" id="cvrA">—</span></div>
+            <div class="metricCompareRow"><span class="pill b">B</span><span class="big mono" id="cvrB">—</span></div>
+            <div class="metricDelta" id="cvrDelta">차이값 계산 전</div>
+          </div>
+          <div class="metricBlock">
+            <div class="metricTitle">이탈률</div>
+            <div class="metricCompareRow"><span class="pill">A</span><span class="big mono" id="brA">—</span></div>
+            <div class="metricCompareRow"><span class="pill b">B</span><span class="big mono" id="brB">—</span></div>
+            <div class="metricDelta" id="brDelta">차이값 계산 전</div>
+          </div>
+          <div class="metricBlock">
+            <div class="metricTitle">평균 체류 시간</div>
+            <div class="metricCompareRow"><span class="pill">A</span><span class="big mono" id="durationA">—</span></div>
+            <div class="metricCompareRow"><span class="pill b">B</span><span class="big mono" id="durationB">—</span></div>
+            <div class="metricDelta" id="durationDelta">차이값 계산 전</div>
+          </div>
+          <div class="metricBlock">
+            <div class="metricTitle">평균 방문 페이지 수</div>
+            <div class="metricCompareRow"><span class="pill">A</span><span class="big mono" id="depthA">—</span></div>
+            <div class="metricCompareRow"><span class="pill b">B</span><span class="big mono" id="depthB">—</span></div>
+            <div class="metricDelta" id="depthDelta">차이값 계산 전</div>
+          </div>
+        </div>
+
+        <div class="metricsGrid experimentCountsGrid">
+          <div class="metricBlock">
+            <div class="metricTitle">건수</div>
+            <div class="kv mono" id="countsBox">—</div>
+          </div>
+          <div class="metricBlock">
+            <div class="metricTitle">클릭률 (선택 지표)</div>
+            <div class="metricCompareRow"><span class="pill">A</span><span class="big mono" id="ctrA">—</span></div>
+            <div class="metricCompareRow"><span class="pill b">B</span><span class="big mono" id="ctrB">—</span></div>
+            <div class="metricDelta" id="ctrDelta">계산 기준이 애매하면 표시하지 않습니다.</div>
+          </div>
+        </div>
+
+        <div class="twoCol experimentClickGrid">
+          <div class="metricBlock">
+            <div class="metricTitle">클릭 많은 요소 · A</div>
+            <div class="list" id="topA">—</div>
+          </div>
+          <div class="metricBlock">
+            <div class="metricTitle">클릭 많은 요소 · B</div>
+            <div class="list" id="topB">—</div>
+          </div>
+        </div>
+
+        <div class="experimentInterpretation" id="experimentInterpretation">현재 수집된 데이터 기준 해석을 준비 중입니다.</div>
       </div>
     </div>
   </dialog>

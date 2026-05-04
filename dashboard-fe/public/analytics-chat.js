@@ -106,6 +106,13 @@
 
     fab.addEventListener("click", () => setOpen(!state.isOpen));
     if (closeBtn) closeBtn.addEventListener("click", () => setOpen(false));
+    document.addEventListener("pointerdown", (event) => {
+      if (!state.isOpen) return;
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (panel.contains(target) || fab.contains(target)) return;
+      setOpen(false);
+    });
     sendBtn.addEventListener("click", () => send(inputEl.value));
     inputEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {

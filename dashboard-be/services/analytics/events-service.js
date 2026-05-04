@@ -3,9 +3,170 @@ const { createFileEventStore } = require("../stores/event-store");
 function createEventsService({ eventsFile, eventStore }) {
   const resolvedEventStore = eventStore || createFileEventStore({ eventsFile });
 
-  function getEventSummary({ siteId, page }) {
-    const events = resolvedEventStore.readAll().filter((e) => e.site_id === siteId);
-    const filtered = page ? events.filter((e) => (e.path || "").startsWith(page)) : events;
+  const JOURNEY_STEPS = [
+    { key: "home", label: "홈" },
+    { key: "browse", label: "상품 목록" },
+    { key: "product", label: "상품 상세" },
+    { key: "cart", label: "장바구니" },
+    { key: "checkout", label: "결제" },
+    { key: "purchase", label: "구매 완료" },
+  ];
+
+  function getEventTs(event) {
+    if (typeof event?.ts === "number") return event.ts;
+    if (typeof event?.received_at === "number") return event.received_at;
+    return null;
+  }
+
+  function inferJourneyStep(pathname, eventName) {
+    const path = String(pathname || "");
+    if (eventName === "checkout_complete") return "purchase";
+    if (path === "/" || path.startsWith("/home")) return "home";
+    if (path.startsWith("/collection") || path.startsWith("/category") || path.startsWith("/search")) return "browse";
+    if (path.startsWith("/detail") || path.startsWith("/product")) return "product";
+    if (path.startsWith("/cart")) return "cart";
+    if (path.startsWith("/checkout")) return "checkout";
+    if (path.startsWith("/order-complete")) return "purchase";
+    return null;
+  }
+
+  function createTrendBuckets(events, fromTs, toTs) {
+    const now = Date.now();
+    const start = typeof fromTs === "number" ? fromTs : Math.min(...events.map((e) => getEventTs(e)).filter((ts) => typeof ts === "number"));
+    const end = typeof toTs === "number" ? toTs : Math.max(...events.map((e) => getEventTs(e)).filter((ts) => typeof ts === "number"), now);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return [];
+
+    const span = end - start;
+    const bucketMs = span <= 24 * 60 * 60 * 1000
+      ? 60 * 60 * 1000
+      : 24 * 60 * 60 * 1000;
+
+    const bucketMap = new Map();
+
+    for (let ts = start; ts <= end; ts += bucketMs) {
+      const key = Math.floor(ts / bucketMs) * bucketMs;
+      if (!bucketMap.has(key)) bucketMap.set(key, { ts: key, event_count: 0, sessions: new Set() });
+    }
+
+    for (const event of events) {
+      const ts = getEventTs(event);
+      if (typeof ts !== "number") continue;
+      const key = Math.floor(ts / bucketMs) * bucketMs;
+      if (!bucketMap.has(key)) bucketMap.set(key, { ts: key, event_count: 0, sessions: new Set() });
+      const bucket = bucketMap.get(key);
+      bucket.event_count += 1;
+      if (event.session_id) bucket.sessions.add(event.session_id);
+    }
+
+    return Array.from(bucketMap.values())
+      .sort((a, b) => a.ts - b.ts)
+      .map((bucket) => ({
+        ts: bucket.ts,
+        session_count: bucket.sessions.size,
+        event_count: bucket.event_count,
+      }));
+  }
+
+  function buildJourneySummary(sessionTimeline) {
+    const stepStats = JOURNEY_STEPS.map((step, index) => ({
+      key: step.key,
+      label: step.label,
+      step_index: index,
+      entered_sessions: 0,
+      next_step_sessions: 0,
+      next_step_rate: null,
+      drop_rate: null,
+      high_drop: false,
+    }));
+
+    let sessionCount = 0;
+
+    for (const list of sessionTimeline.values()) {
+      const pageViews = list
+        .slice()
+        .sort((a, b) => a.ts - b.ts)
+        .filter((item) => item.event_name === "page_view" || item.event_name === "checkout_complete")
+        .map((item) => inferJourneyStep(item.path, item.event_name))
+        .filter(Boolean);
+
+      const uniqueSteps = [];
+      for (const step of pageViews) {
+        if (uniqueSteps[uniqueSteps.length - 1] !== step) uniqueSteps.push(step);
+      }
+      if (!uniqueSteps.length) continue;
+      sessionCount += 1;
+
+      JOURNEY_STEPS.forEach((step, index) => {
+        const currentIndex = uniqueSteps.indexOf(step.key);
+        if (currentIndex === -1) return;
+        stepStats[index].entered_sessions += 1;
+        if (index < JOURNEY_STEPS.length - 1) {
+          const nextKey = JOURNEY_STEPS[index + 1].key;
+          const nextIndex = uniqueSteps.indexOf(nextKey);
+          if (nextIndex > currentIndex) stepStats[index].next_step_sessions += 1;
+        }
+      });
+    }
+
+    stepStats.forEach((step, index) => {
+      if (index === JOURNEY_STEPS.length - 1) {
+        step.next_step_rate = null;
+        step.drop_rate = step.entered_sessions > 0 ? 0 : null;
+        return;
+      }
+      if (step.entered_sessions === 0) {
+        step.next_step_rate = null;
+        step.drop_rate = null;
+        return;
+      }
+      step.next_step_rate = step.next_step_sessions / step.entered_sessions;
+      step.drop_rate = 1 - step.next_step_rate;
+      step.high_drop = step.drop_rate >= 0.5;
+    });
+
+    return {
+      ok: sessionCount > 0,
+      total_sessions: sessionCount,
+      steps: stepStats,
+    };
+  }
+
+  function buildSdkStatus(siteEvents) {
+    const timestamps = siteEvents.map((event) => getEventTs(event)).filter((ts) => typeof ts === "number");
+    if (!timestamps.length) {
+      return {
+        status: "unknown",
+        label: "수신 정보 없음",
+        last_event_ts: null,
+        recent_events_5m: 0,
+      };
+    }
+
+    const now = Date.now();
+    const lastEventTs = Math.max(...timestamps);
+    const recentEvents5m = timestamps.filter((ts) => ts >= now - (5 * 60 * 1000)).length;
+    const diffMs = now - lastEventTs;
+
+    if (diffMs <= 5 * 60 * 1000) {
+      return { status: "normal", label: "정상", last_event_ts: lastEventTs, recent_events_5m: recentEvents5m };
+    }
+    if (diffMs <= 30 * 60 * 1000) {
+      return { status: "caution", label: "주의", last_event_ts: lastEventTs, recent_events_5m: recentEvents5m };
+    }
+    return { status: "missing", label: "미수신", last_event_ts: lastEventTs, recent_events_5m: recentEvents5m };
+  }
+
+  function getEventSummary({ siteId, page, fromTs, toTs }) {
+    const allSiteEvents = resolvedEventStore.readAll().filter((e) => {
+      if (e.site_id !== siteId) return false;
+      const ts = getEventTs(e);
+      if ((typeof fromTs === "number" || typeof toTs === "number") && typeof ts !== "number") return false;
+      if (typeof fromTs === "number" && ts < fromTs) return false;
+      if (typeof toTs === "number" && ts > toTs) return false;
+      return true;
+    });
+    const siteEvents = resolvedEventStore.readAll().filter((e) => e.site_id === siteId);
+    const filtered = page ? allSiteEvents.filter((e) => (e.path || "").startsWith(page)) : allSiteEvents;
 
     const pageViews = new Map();
     const elementClicks = new Map();
@@ -28,7 +189,7 @@ function createEventsService({ eventsFile, eventStore }) {
 
       const sid = e.session_id || "no_session";
       if (!sessionTimeline.has(sid)) sessionTimeline.set(sid, []);
-      sessionTimeline.get(sid).push({ ts: e.ts || e.received_at || 0, path: e.path || "/" });
+      sessionTimeline.get(sid).push({ ts: e.ts || e.received_at || 0, path: e.path || "/", event_name: e.event_name });
     }
 
     const transitionCount = new Map();
@@ -64,10 +225,15 @@ function createEventsService({ eventsFile, eventStore }) {
     return {
       ok: true,
       site_id: siteId,
+      from_ts: fromTs,
+      to_ts: toTs,
       total_events: filtered.length,
       top_pages: topPages,
       top_elements: topElements,
       page_flow: flow,
+      trend: createTrendBuckets(filtered, fromTs, toTs),
+      journey: buildJourneySummary(sessionTimeline),
+      sdk_status: buildSdkStatus(siteEvents),
       funnel: {
         detail_page_view: detailPageViews,
         checkout_page_view: checkoutPageViews,
