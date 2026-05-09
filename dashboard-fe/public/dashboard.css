@@ -2442,3 +2442,661 @@ tr:hover td { background: #f8fbff; }
     font-size: 11px;
   }
 }
+
+/* ===== Premium SaaS analytics refinement ===== */
+:root {
+  --dash-blue: #6366f1;
+  --dash-blue-strong: #4f46e5;
+  --dash-blue-soft: #eef2ff;
+  --dash-ink: #0f172a;
+  --dash-muted: #64748b;
+  --dash-muted-soft: #94a3b8;
+  --dash-border: #e2e8f0;
+  --dash-card: #ffffff;
+  --dash-canvas: #f8fafc;
+  --dash-card-soft: #f8fafc;
+  --dash-sidebar: 280px;
+  --dash-header: 66px;
+  --dash-radius-xl: 24px;
+  --dash-radius-lg: 20px;
+  --dash-radius-md: 14px;
+  --dash-shadow: 0 22px 54px rgba(15, 23, 42, 0.11), 0 8px 18px rgba(15, 23, 42, 0.06);
+  --dash-shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.075), 0 2px 8px rgba(15, 23, 42, 0.045);
+  --dash-ring: 0 0 0 4px rgba(99, 102, 241, 0.13);
+}
+
+body {
+  color: var(--dash-ink);
+  background:
+    radial-gradient(circle at 82% -12%, rgba(99, 102, 241, 0.11), transparent 26rem),
+    radial-gradient(circle at 4% 28%, rgba(148, 163, 184, 0.11), transparent 24rem),
+    var(--dash-canvas);
+  font-size: 14px;
+}
+
+.dashboardSidebar {
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  border-right: 1px solid #1e293b;
+  box-shadow: 16px 0 40px rgba(15, 23, 42, 0.12);
+}
+
+.sidebarBrand {
+  height: 62px;
+  padding-bottom: 18px;
+  border-bottom-color: #1e293b;
+}
+
+.sidebarLogo {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--dash-blue), #818cf8);
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.24);
+}
+
+.sidebarTitle {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 760;
+}
+
+.sidebarSubtitle,
+.sidebarNavLabel {
+  color: #94a3b8;
+}
+
+.sidebarSubtitle,
+.sidebarNavLabel,
+.muted,
+.summaryHint,
+.topLabel,
+.topUser,
+.sdkStatusText {
+  color: var(--dash-muted);
+}
+
+.sidebarNav { gap: 6px; }
+
+.sidebarLink {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 13px;
+  color: #cbd5e1;
+  font-weight: 680;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.sidebarLink span { color: #94a3b8; }
+
+.sidebarLink:hover {
+  color: #f8fafc;
+  background: rgba(99, 102, 241, 0.12);
+  transform: translateX(2px);
+}
+
+.sidebarLink:hover span { color: #c7d2fe; }
+
+.sidebarLink.is-active {
+  color: #e0e7ff;
+  background: rgba(99, 102, 241, 0.18);
+  box-shadow: inset 3px 0 0 #818cf8, 0 10px 22px rgba(15, 23, 42, 0.18);
+}
+
+.sidebarLink.is-active span { color: #c7d2fe; }
+
+.topbar {
+  min-height: var(--dash-header);
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--dash-border);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+}
+
+.topbarIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  color: var(--dash-blue-strong);
+  background: var(--dash-blue-soft);
+  font-size: 15px;
+}
+
+.title,
+h2,
+h3,
+.summaryValue {
+  color: var(--dash-ink);
+}
+
+.title { font-size: 17px; font-weight: 760; }
+.subtitle { display: block; color: var(--dash-muted); }
+
+.topActions {
+  gap: 10px;
+  min-width: 0;
+}
+
+.selectInput,
+.dateInput,
+.btnGhost,
+.btnPrimary,
+.btn,
+.chatbotIconBtn,
+.chatbotQuickBtn,
+.chatbotInput,
+.formField input {
+  border-radius: 12px;
+  border-color: var(--dash-border);
+  min-height: 38px;
+  color: #334155;
+  background: #ffffff;
+  font-weight: 650;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.selectInput:focus,
+.dateInput:focus,
+.chatbotInput:focus,
+.formField input:focus {
+  border-color: var(--dash-blue);
+  box-shadow: var(--dash-ring);
+  outline: none;
+}
+
+.btnGhost,
+.btn {
+  background: #ffffff;
+  color: #475569;
+}
+
+.btnGhost:hover,
+.btn:hover,
+.chatbotIconBtn:hover,
+.chatbotQuickBtn:hover {
+  color: var(--dash-blue-strong);
+  border-color: #c7d2fe;
+  background: #f8faff;
+}
+
+.btnPrimary,
+.btn.primary,
+.chatbotSendBtn {
+  border-color: var(--dash-blue);
+  background: var(--dash-blue);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.22);
+}
+
+.btnPrimary:hover,
+.btn.primary:hover,
+.chatbotSendBtn:hover {
+  border-color: var(--dash-blue-strong);
+  background: var(--dash-blue-strong);
+  transform: translateY(-1px);
+}
+
+.wrap {
+  padding: 30px;
+  gap: 24px 20px;
+}
+
+.summaryCard,
+.card,
+.detailsCard,
+.dialogInner,
+.chatbotPanel,
+.chatbotFab {
+  border: 1px solid var(--dash-border);
+  background: var(--dash-card);
+  box-shadow: var(--dash-shadow-soft);
+}
+
+.summaryCard,
+.card,
+.detailsCard {
+  border-radius: var(--dash-radius-xl);
+}
+
+.summaryCard,
+.card {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.summaryCard:hover,
+.card:hover,
+.detailsCard:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--dash-shadow);
+  transform: translateY(-1px);
+}
+
+.card { padding: 28px; }
+
+.cardHead {
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.periodCard {
+  padding: 22px 24px;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+}
+
+.periodHead,
+.experimentSummaryHead,
+.experimentDialogHero {
+  gap: 18px;
+}
+
+.periodControls,
+.dateRangeInputs,
+.experimentSummaryMeta,
+.topActions {
+  flex-wrap: wrap;
+}
+
+.filterField {
+  gap: 8px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.sdkStatusInline {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top-color: #eef2f7;
+}
+
+.summaryRow { gap: 20px; }
+
+.summaryCard {
+  min-height: 148px;
+  padding: 26px 78px 24px 24px;
+}
+
+.summaryCard::after {
+  right: 24px;
+  top: 24px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: var(--dash-blue-soft);
+  border-color: #dfe5ff;
+}
+
+.summaryCard::before {
+  right: 38px;
+  top: 32px;
+  color: var(--dash-blue);
+}
+
+.summaryLabel {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+}
+
+.summaryValue {
+  font-size: clamp(28px, 2.6vw, 34px);
+  font-weight: 780;
+  letter-spacing: -0.045em;
+}
+
+.summaryHint {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.trendPanel,
+.chartSidePanel > .card {
+  min-height: 392px;
+}
+
+.trendChartCard {
+  min-height: 286px;
+  padding: 4px 2px 0;
+  background: transparent;
+}
+
+.trendSvg { height: 252px; }
+
+.chartLegend {
+  gap: 10px;
+  padding: 7px 12px;
+  border-color: var(--dash-border);
+  background: #f8fafc;
+}
+
+.legendItem { color: var(--dash-muted); font-weight: 650; }
+.legendDot.sessions { background: var(--dash-blue); }
+.legendDot.events { background: #2563eb; }
+
+.trendTooltip {
+  border-radius: 14px;
+  border-color: var(--dash-border);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+}
+
+.distributionLayout { gap: 22px; }
+
+.distributionDonut {
+  box-shadow: inset 0 0 0 1px #e2e8f0, 0 12px 26px rgba(15, 23, 42, 0.04);
+}
+
+.distributionDonut::after { box-shadow: inset 0 0 0 1px #e2e8f0; }
+
+.barList { gap: 14px; }
+.barMeta { color: #334155; }
+.barTrack { height: 9px; background: #eef2f7; }
+.barFill { background: linear-gradient(90deg, var(--dash-blue), #818cf8); }
+
+.badge,
+.pill,
+.sdkStatusBadge {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border-color: var(--dash-border);
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: -0.005em;
+}
+
+.badge.label,
+.productInsightMeta .badge.label,
+.opportunityItem .badge.label {
+  color: #4338ca;
+  background: var(--dash-blue-soft);
+  border-color: #c7d2fe;
+  box-shadow: none;
+}
+
+.badge.running,
+.btn.good,
+.pill.b,
+.sdkStatusBadge.normal {
+  color: #15803d;
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.badge.medium,
+.badge.draft,
+.opportunityItem .badge.medium,
+.sdkStatusBadge.caution {
+  color: #b45309;
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.badge.high,
+.badge.paused,
+.opportunityItem .badge.high,
+.journeyStep.highDrop .badge.high,
+.sdkStatusBadge.missing,
+.btn.danger {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.badge.low,
+.opportunityItem .badge.low,
+.pill,
+.helpBtn {
+  color: #4338ca;
+  background: var(--dash-blue-soft);
+  border-color: #c7d2fe;
+}
+
+.opportunityList,
+.insightsGrid,
+.barList,
+.productInsightBlocks {
+  gap: 16px;
+}
+
+.opportunityItem,
+.productInsightSummary,
+.productInsightBlock,
+.productInsightProblemCard,
+.experimentSummaryCard,
+.summaryMiniCard,
+.metricBlock,
+.insightCard,
+.experimentInterpretation,
+.compactEmpty {
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-lg);
+  background: var(--dash-card-soft);
+}
+
+.opportunityItem,
+.productInsightBlock,
+.productInsightProblemCard,
+.summaryMiniCard,
+.metricBlock,
+.insightCard {
+  padding: 16px;
+}
+
+.opportunityItem {
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.035);
+}
+
+.opportunityTitle,
+.insightHead,
+.journeyStepTitle {
+  gap: 12px;
+}
+
+.opportunityDesc,
+.insightText,
+.productInsightSummaryText,
+.kv,
+.list,
+.compactList {
+  color: #334155;
+  line-height: 1.65;
+}
+
+.opportunityAction,
+.metricDelta {
+  border-top-color: #e2e8f0;
+  color: var(--dash-muted);
+}
+
+.experimentSummaryCard { padding: 22px; }
+
+.experimentSummaryGrid,
+.experimentDialogMetaGrid,
+.metricsGrid,
+.productInsightBlocks {
+  gap: 16px;
+}
+
+.summaryMiniValue,
+.big,
+.metricTitle,
+.insightTitle,
+.journeyStepName {
+  color: var(--dash-ink);
+}
+
+.metricTitle,
+.summaryMiniCard .summaryLabel {
+  color: var(--dash-muted);
+}
+
+.journeyFlow {
+  gap: 16px;
+  padding: 2px 2px 10px;
+}
+
+.journeyStep {
+  border-radius: var(--dash-radius-lg);
+  border-color: var(--dash-border);
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.035);
+}
+
+.journeyStep.highDrop {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.journeyStep + .journeyStep::before {
+  left: -15px;
+  color: #94a3b8;
+}
+
+.journeyStats { gap: 8px; color: var(--dash-muted); }
+.journeyHint { color: var(--dash-muted); }
+
+.tableWrap {
+  border-color: var(--dash-border);
+  border-radius: var(--dash-radius-lg);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.table { min-width: 860px; }
+
+th,
+td {
+  padding: 15px 18px;
+  border-bottom-color: #edf2f7;
+}
+
+th {
+  color: #64748b;
+  background: #f8fafc;
+  font-weight: 720;
+}
+
+td { color: #334155; }
+tr:hover td { background: #f8faff; }
+
+.detailsSummary {
+  padding: 24px 28px;
+  color: var(--dash-ink);
+}
+
+.detailsBody { padding: 0 28px 28px; }
+
+.dialog {
+  border-radius: var(--dash-radius-xl);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.24);
+}
+
+.dialogHeader,
+.chatbotHeader,
+.chatbotComposer {
+  background: #f8fafc;
+  border-color: var(--dash-border);
+}
+
+.chatbotFab {
+  border-radius: 18px;
+  border-color: var(--dash-border);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+}
+
+.chatbotFab:hover { box-shadow: 0 22px 52px rgba(15, 23, 42, 0.2); }
+
+.chatbotFabIcon {
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--dash-blue), #818cf8);
+}
+
+.chatbotPanel { border-radius: 22px; }
+
+.chatbotMessage {
+  border-color: var(--dash-border);
+  border-radius: 16px;
+}
+
+.chatbotMessage.user {
+  color: #312e81;
+  background: var(--dash-blue-soft);
+  border-color: #c7d2fe;
+}
+
+.chatbotMessage.assistant { background: #ffffff; }
+
+@media (max-width: 1180px) {
+  .dashboardSidebar { width: 92px; }
+  .dashboardMain { margin-left: 92px; }
+  .sidebarLink { border-radius: 14px; }
+}
+
+@media (max-width: 920px) {
+  .dashboardMain { margin-left: 0; }
+  .dashboardSidebar {
+    width: auto;
+    box-shadow: none;
+  }
+  .sidebarNav { gap: 8px; }
+  .sidebarLink { min-width: max-content; }
+  .topbar { padding: 18px; }
+  .topActions { width: 100%; }
+  .wrap { padding: 20px; gap: 20px; }
+  .summaryRow,
+  .metricsGrid,
+  .experimentSummaryGrid,
+  .experimentDialogMetaGrid,
+  .experimentMetricsGrid,
+  .experimentCountsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .productInsightBlocks { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .summaryRow,
+  .metricsGrid,
+  .experimentSummaryGrid,
+  .experimentDialogMetaGrid,
+  .experimentMetricsGrid,
+  .experimentCountsGrid {
+    grid-template-columns: 1fr;
+  }
+  .topActions > *,
+  .periodControls > *,
+  .dateRangeInputs > * {
+    max-width: 100%;
+  }
+  .selectInput,
+  .dateInput { max-width: 100%; }
+  .card { padding: 22px; }
+  .summaryCard { padding: 22px 24px; }
+  .summaryCard::before,
+  .summaryCard::after { display: none; }
+  .journeyFlow { grid-template-columns: 1fr; overflow-x: visible; }
+  .journeyStep + .journeyStep::before {
+    content: "↓";
+    left: 50%;
+    top: -15px;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 520px) {
+  .wrap { padding: 16px; }
+  .card,
+  .summaryCard,
+  .detailsCard { border-radius: 18px; }
+  .topActions { align-items: stretch; }
+  .topActions .selectInput,
+  .topActions .btnGhost,
+  .topActions .btnPrimary { width: 100%; justify-content: center; }
+  .chatbotPanel {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+  }
+}
