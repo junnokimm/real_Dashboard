@@ -22,11 +22,12 @@
       <nav class="sidebarNav" aria-label="주요 메뉴">
         <div class="sidebarNavLabel">메뉴</div>
         <a class="sidebarLink is-active" href="#summaryRow"><span aria-hidden="true">▦</span>대시보드</a>
+        <a class="sidebarLink" href="#journeyCard"><span aria-hidden="true">↝</span>사용자 흐름</a>
         <a class="sidebarLink" href="#trendPanel"><span aria-hidden="true">⌁</span>모니터링</a>
         <a class="sidebarLink" href="#experimentPanel"><span aria-hidden="true">◈</span>실험 관리</a>
-        <a class="sidebarLink" href="#journeyCard"><span aria-hidden="true">↝</span>사용자 흐름</a>
-        <a class="sidebarLink" href="#insightsCard"><span aria-hidden="true">✦</span>AI 인사이트</a>
+        <a class="sidebarLink" href="#labelsCard"><span aria-hidden="true">▤</span>유형별 지표</a>
         <a class="sidebarLink" href="#sessionsCard"><span aria-hidden="true">♙</span>세션 로그</a>
+        <a class="sidebarLink" href="#insightsCard"><span aria-hidden="true">✦</span>AI 인사이트</a>
       </nav>
     </aside>
 
@@ -51,7 +52,7 @@
           <button class="btnGhost" id="settingsBtn" type="button" title="계정·권한 관리">설정</button>
           <button class="btnGhost" id="refreshBtn" type="button">새로고침</button>
           <button class="btnGhost" id="logoutBtn" type="button">로그아웃</button>
-          <a class="btnPrimary" id="topEditorLink" href="/editor">화면 편집기</a>
+          <a class="btnPrimary" id="topEditorLink" href="/editor" target="_blank" rel="noopener">화면 편집기</a>
         </div>
       </header>
 
@@ -109,6 +110,18 @@
         <div class="summaryLabel">오늘 먼저 확인할 문제</div>
         <div class="summaryValue mono" id="uxHighPriorityCount">—</div>
         <div class="summaryHint" id="uxPriorityHint">우선 확인이 필요한 항목 수</div>
+      </div>
+    </section>
+
+    <section class="card" id="journeyCard">
+      <div class="cardHead">
+        <div>
+          <h2>사용자 이동 흐름</h2>
+          <div class="muted">선택한 기간 동안 사용자가 어떤 페이지 흐름으로 이동하고, 어느 단계에서 이탈하는지 보여줍니다.</div>
+        </div>
+      </div>
+      <div id="journeyFlow" class="journeyFlow">
+        <div class="emptyState">선택한 기간에 수집된 이동 흐름 데이터가 없습니다.</div>
       </div>
     </section>
 
@@ -226,7 +239,7 @@
         <div class="emptyIcon">🧪</div>
         <div class="emptyTitle">아직 실험이 없어요</div>
         <div class="emptyDesc">편집기에서 화면을 바꾼 뒤 「실제 적용」을 누르면 목록에 올라옵니다.</div>
-        <a class="btnPrimary" id="emptyEditorLink" href="/editor">화면 편집기 열기</a>
+        <a class="btnPrimary" id="emptyEditorLink" href="/editor" target="_blank" rel="noopener">화면 편집기 열기</a>
       </div>
 
       <div class="tableWrap" id="expTableWrap">
@@ -269,18 +282,6 @@
             <tr><td colspan="6" class="emptyState">세션 데이터가 없어요.</td></tr>
           </tbody>
         </table>
-      </div>
-    </section>
-
-    <section class="card" id="journeyCard">
-      <div class="cardHead">
-        <div>
-          <h2>사용자 이동 흐름</h2>
-          <div class="muted">선택한 기간 동안 사용자가 어떤 페이지 흐름으로 이동하고, 어느 단계에서 이탈하는지 보여줍니다.</div>
-        </div>
-      </div>
-      <div id="journeyFlow" class="journeyFlow">
-        <div class="emptyState">선택한 기간에 수집된 이동 흐름 데이터가 없습니다.</div>
       </div>
     </section>
 
@@ -564,9 +565,10 @@
 
   <!-- 경로 매핑 설정 다이얼로그 -->
   <dialog id="pathMappingsDialog" class="pathMappingsDialog" aria-labelledby="pathMappingsDialogTitle">
+    <form id="pathMappingsCloseForm" method="dialog"></form>
     <div class="pathMappingsHeader">
       <span id="pathMappingsDialogTitle" class="pathMappingsTitle">사용자 흐름 경로 설정</span>
-      <button id="pathMappingsCloseBtn" class="btnGhost" type="button">닫기</button>
+      <button id="pathMappingsCloseBtn" class="btnGhost" type="submit" form="pathMappingsCloseForm" value="close" data-dialog-close="path-mappings">닫기</button>
     </div>
     <div class="pathMappingsBody">
       <p class="pathMappingsDesc">
@@ -580,7 +582,7 @@
     <div class="pathMappingsFooter">
       <span id="pathMappingsStatus" class="pathMappingsStatus"></span>
       <div class="pathMappingsActions">
-        <button id="pathMappingsCancelBtn" class="btnGhost" type="button">취소</button>
+        <button id="pathMappingsCancelBtn" class="btnGhost" type="submit" form="pathMappingsCloseForm" value="cancel" data-dialog-close="path-mappings">취소</button>
         <button id="pathMappingsSaveBtn" class="btnPrimary" type="button">저장</button>
       </div>
     </div>

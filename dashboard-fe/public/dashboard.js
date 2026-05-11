@@ -1835,13 +1835,33 @@
     }
   }
 
+  function closePathMappingsDialog() {
+    if (!pathMappingsDialog?.open) return;
+    pathMappingsDialog.close();
+  }
+
   if (pathMappingsBtn) pathMappingsBtn.addEventListener("click", openPathMappingsDialog);
   if (pathMappingsSaveBtn) pathMappingsSaveBtn.addEventListener("click", savePathMappings);
-  if (pathMappingsCancelBtn) pathMappingsCancelBtn.addEventListener("click", () => pathMappingsDialog?.close());
-  if (pathMappingsCloseBtn) pathMappingsCloseBtn.addEventListener("click", () => pathMappingsDialog?.close());
+  if (pathMappingsCancelBtn) pathMappingsCancelBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closePathMappingsDialog();
+  });
+  if (pathMappingsCloseBtn) pathMappingsCloseBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closePathMappingsDialog();
+  });
   if (pathMappingsDialog) {
     pathMappingsDialog.addEventListener("click", (e) => {
-      if (e.target === pathMappingsDialog) pathMappingsDialog.close();
+      const closeTrigger = e.target instanceof Element ? e.target.closest('[data-dialog-close="path-mappings"]') : null;
+      if (closeTrigger) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePathMappingsDialog();
+        return;
+      }
+      if (e.target === pathMappingsDialog) closePathMappingsDialog();
     });
   }
 
