@@ -110,6 +110,14 @@ function buildWhere(label, representatives) {
   const playbook = LABEL_PLAYBOOK[label] || LABEL_PLAYBOOK.window_shopper;
   const avgDuration = Math.round(avg(representatives.map((item) => item?.summary?.duration_ms || 0)) / 1000);
   const avgDepth = avg(representatives.map((item) => item?.summary?.depth || 0)).toFixed(1);
+  const pathSummary = Array.from(new Set(
+    representatives
+      .flatMap((item) => (Array.isArray(item?.summary?.unique_paths) ? item.summary.unique_paths : []))
+      .filter((path) => typeof path === "string" && path && path !== "/login" && path !== "/logout")
+  )).slice(0, 4).join(", ");
+  if (pathSummary) {
+    return `${pathSummary} 중심 구간에서 반복 신호가 보입니다. 대표 세션 기준 평균 체류 ${avgDuration}초, 평균 탐색 깊이 ${avgDepth} 수준입니다.`;
+  }
   return `${playbook.where}에서 반복 신호가 보입니다. 대표 세션 기준 평균 체류 ${avgDuration}초, 평균 탐색 깊이 ${avgDepth} 수준입니다.`;
 }
 
