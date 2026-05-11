@@ -3111,11 +3111,13 @@ tr:hover td { background: #f8faff; }
   max-width: 600px;
   max-height: 80vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 .pathMappingsDialog::backdrop {
   background: rgba(0,0,0,0.45);
+}
+.pathMappingsDialog[open] {
+  display: flex;
+  flex-direction: column;
 }
 
 .pathMappingsHeader {
