@@ -76,11 +76,33 @@ function ruleOverExplorer(s) {
   let score = 0;
 
   if (!s.checkout_entered && !s.checkout_complete) {
+    if ((s.page_views || 0) >= 4 && (s.depth || 0) >= 2 && (s.duration_ms || 0) >= 90_000) {
+      reasons.push("page_views>=4");
+      reasons.push("depth>=2");
+      reasons.push("duration_ms>=90000");
+      score = Math.max(score, 0.65);
+    }
+
+    if ((s.duration_ms || 0) >= 180_000 && (s.depth || 0) >= 2 && (s.clicks || 0) <= 2) {
+      reasons.push("duration_ms>=180000");
+      reasons.push("depth>=2");
+      reasons.push("clicks<=2");
+      score = Math.max(score, 0.7);
+    }
+
+    if ((s.page_views || 0) >= 3 && (s.depth || 0) >= 2 && (s.clicks || 0) <= 1 && (s.duration_ms || 0) >= 120_000) {
+      reasons.push("page_views>=3");
+      reasons.push("depth>=2");
+      reasons.push("clicks<=1");
+      reasons.push("duration_ms>=120000");
+      score = Math.max(score, 0.68);
+    }
+
     if ((s.page_views || 0) >= 6 && (s.depth || 0) >= 3 && (s.duration_ms || 0) >= 90_000) {
       reasons.push("page_views>=6");
       reasons.push("depth>=3");
       reasons.push("duration_ms>=90000");
-      score = 0.65;
+      score = Math.max(score, 0.72);
     }
   }
 
@@ -92,10 +114,11 @@ function ruleWindowShopper(s) {
   let score = 0;
 
   if (!s.checkout_entered && !s.checkout_complete) {
-    if ((s.page_views || 0) <= 3 && (s.clicks || 0) <= 2 && (s.duration_ms || 0) <= 45_000) {
-      reasons.push("page_views<=3");
-      reasons.push("clicks<=2");
-      reasons.push("duration_ms<=45000");
+    if ((s.page_views || 0) <= 2 && (s.clicks || 0) <= 1 && (s.depth || 0) <= 2 && (s.duration_ms || 0) <= 20_000) {
+      reasons.push("page_views<=2");
+      reasons.push("clicks<=1");
+      reasons.push("depth<=2");
+      reasons.push("duration_ms<=20000");
       score = 0.55;
     }
   }
@@ -157,5 +180,7 @@ function labelSessionSummary(summary) {
 module.exports = {
   LABELS,
   LABEL_PRIORITY,
-  labelSessionSummary
+  labelSessionSummary,
+  ruleOverExplorer,
+  ruleWindowShopper
 };
