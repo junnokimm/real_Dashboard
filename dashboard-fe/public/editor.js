@@ -76,6 +76,15 @@
   const editorCopilotRoot = document.getElementById("editorCopilotRoot");
   const editorCopilotToggleBtn = document.getElementById("editorCopilotToggleBtn");
 
+  const editTargetsBtn = document.getElementById("editTargetsBtn");
+  const targetsModal = document.getElementById("targetsModal");
+  const targetsModalCloseBtn = document.getElementById("targetsModalCloseBtn");
+  const targetsModalCancelBtn = document.getElementById("targetsModalCancelBtn");
+  const targetsModalSaveBtn = document.getElementById("targetsModalSaveBtn");
+  const targetsTableBody = document.getElementById("targetsTableBody");
+  const addTargetRowBtn = document.getElementById("addTargetRowBtn");
+  const targetsModalStatus = document.getElementById("targetsModalStatus");
+
   const DRAFT_STORAGE_KEY = "uxsdk.analyticsCopilotDraft";
   const DASHBOARD_SITE_STORAGE_KEY = "uxsdk.dashboard.siteId";
   const DEFAULT_SITE_ID = "legend-ecommerce";
@@ -1016,6 +1025,124 @@
       return;
     }
   });
+
+  // ===== 경로 편집 모달 =====
+
+  function openTargetsModal() {
+    const targets = getPreviewTargets();
+    renderTargetsTable(targets);
+    setTargetsModalStatus("");
+    targetsModal.style.display = "flex";
+  }
+
+  function closeTargetsModal() {
+    targetsModal.style.display = "none";
+  }
+
+  function setTargetsModalStatus(msg, type) {
+    targetsModalStatus.textContent = msg || "";
+    targetsModalStatus.className = "targetsModalStatus" + (type ? ` ${type}` : "");
+  }
+
+  function renderTargetsTable(targets) {
+    targetsTableBody.innerHTML = "";
+    const list = targets.length ? targets : [{ id: "", label: "", path: "/", url_prefix: "/", default: true }];
+    list.forEach((t, i) => addTargetRow(t, i === 0 && !targets.length));
+  }
+
+  function addTargetRow(t, isNew) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="radio" name="targetDefault" value="${escapeAttr(t?.id || "")}" ${t?.default ? "checked" : ""} /></td>
+      <td><input type="text" class="targetLabelInput" placeholder="예: 홈" value="${escapeAttr(t?.label || "")}" /></td>
+      <td><input type="text" class="targetPathInput" placeholder="예: /item" value="${escapeAttr(t?.path || (isNew ? "" : "/"))}" /></td>
+      <td><button type="button" class="btnIcon removeTargetRowBtn" title="삭제">&#10005;</button></td>
+    `;
+
+    tr.querySelector(".removeTargetRowBtn").addEventListener("click", () => {
+      tr.remove();
+      reassignDefaultRadioIfNeeded();
+    });
+
+    tr.querySelector('input[name="targetDefault"]').addEventListener("change", () => {
+      Array.from(targetsTableBody.querySelectorAll('input[name="targetDefault"]')).forEach((r) => {
+        r.checked = r === tr.querySelector('input[name="targetDefault"]');
+      });
+    });
+
+    targetsTableBody.appendChild(tr);
+  }
+
+  function reassignDefaultRadioIfNeeded() {
+    const radios = Array.from(targetsTableBody.querySelectorAll('input[name="targetDefault"]'));
+    if (radios.length > 0 && !radios.some((r) => r.checked)) {
+      radios[0].checked = true;
+    }
+  }
+
+  function escapeAttr(str) {
+    return String(str || "").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function collectTargetsFromTable() {
+    const rows = Array.from(targetsTableBody.querySelectorAll("tr"));
+    return rows.map((tr, i) => {
+      const label = tr.querySelector(".targetLabelInput")?.value.trim() || "";
+      const path = tr.querySelector(".targetPathInput")?.value.trim() || "/";
+      const isDefault = tr.querySelector('input[name="targetDefault"]')?.checked || false;
+      const slugPart = path.split("/").filter(Boolean)[0] || "page";
+      const id = slugPart.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || `target-${i + 1}`;
+      const url_prefix = path.split("?")[0] || "/";
+      return { id, label: label || path, path, url_prefix, default: isDefault };
+    }).filter((t) => t.path);
+  }
+
+  async function saveTargets() {
+    const targets = collectTargetsFromTable();
+    if (targets.length === 0) {
+      setTargetsModalStatus("경로를 1개 이상 등록해주세요.", "error");
+      return;
+    }
+    const hasDef = targets.some((t) => t.default);
+    if (!hasDef) targets[0].default = true;
+
+    setTargetsModalStatus("저장 중…");
+    targetsModalSaveBtn.disabled = true;
+
+    try {
+      const r = await fetch(`/api/sites/${encodeURIComponent(currentSiteId)}/preview-targets`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preview_targets: targets }),
+      });
+      const j = await r.json();
+      if (!j?.ok) throw new Error(j?.reason || "저장 실패");
+
+      currentSiteConfig = j.site;
+      populateTargetSelect();
+      const newDefault = getDefaultTarget();
+      if (newDefault) applyTarget(newDefault);
+      setTargetsModalStatus("저장 완료!", "success");
+      setTimeout(closeTargetsModal, 800);
+      log(`preview_targets 저장 완료 (${targets.length}개)`);
+    } catch (e) {
+      setTargetsModalStatus(`오류: ${String(e)}`, "error");
+      log(`preview_targets 저장 실패: ${String(e)}`);
+    } finally {
+      targetsModalSaveBtn.disabled = false;
+    }
+  }
+
+  if (editTargetsBtn) editTargetsBtn.addEventListener("click", openTargetsModal);
+  if (targetsModalCloseBtn) targetsModalCloseBtn.addEventListener("click", closeTargetsModal);
+  if (targetsModalCancelBtn) targetsModalCancelBtn.addEventListener("click", closeTargetsModal);
+  if (targetsModalSaveBtn) targetsModalSaveBtn.addEventListener("click", saveTargets);
+  if (addTargetRowBtn) addTargetRowBtn.addEventListener("click", () => addTargetRow({}, true));
+  if (targetsModal) {
+    targetsModal.addEventListener("click", (e) => {
+      if (e.target === targetsModal) closeTargetsModal();
+    });
+  }
 
   async function initEditor() {
     authUser = await fetchAuthMe();

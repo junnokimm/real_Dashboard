@@ -31,6 +31,14 @@
   const uxPriorityHint = document.getElementById("uxPriorityHint");
   const journeyFlow = document.getElementById("journeyFlow");
 
+  const pathMappingsBtn = document.getElementById("pathMappingsBtn");
+  const pathMappingsDialog = document.getElementById("pathMappingsDialog");
+  const pathMappingsGrid = document.getElementById("pathMappingsGrid");
+  const pathMappingsSaveBtn = document.getElementById("pathMappingsSaveBtn");
+  const pathMappingsCancelBtn = document.getElementById("pathMappingsCancelBtn");
+  const pathMappingsCloseBtn = document.getElementById("pathMappingsCloseBtn");
+  const pathMappingsStatus = document.getElementById("pathMappingsStatus");
+
   const settingsBtn = document.getElementById("settingsBtn");
   const userManagementDialog = document.getElementById("userManagementDialog");
   const closeDialogBtn = document.getElementById("closeDialogBtn");
@@ -1699,6 +1707,141 @@
         if (experimentMetricsDialog?.open) experimentMetricsDialog.close();
         render().catch((e) => alert(String(e)));
       }
+    });
+  }
+
+  // 경로 매핑 설정 모달
+  const PATH_MAPPING_STEPS = [
+    { key: "home",     label: "홈",       sub: "메인 페이지" },
+    { key: "browse",   label: "상품 목록", sub: "카테고리/검색" },
+    { key: "product",  label: "상품 상세", sub: "개별 상품 페이지" },
+    { key: "cart",     label: "장바구니",  sub: "카트 페이지" },
+    { key: "checkout", label: "결제",     sub: "결제 진행 페이지" },
+    { key: "purchase", label: "구매 완료", sub: "주문 완료 페이지" },
+  ];
+  const DEFAULT_MAPPINGS = {
+    home:     ["/", "/home"],
+    browse:   ["/collection", "/category", "/search"],
+    product:  ["/detail", "/product"],
+    cart:     ["/cart"],
+    checkout: ["/checkout"],
+    purchase: ["/order-complete"],
+  };
+
+  function setPathMappingsStatus(msg, type) {
+    if (!pathMappingsStatus) return;
+    pathMappingsStatus.textContent = msg || "";
+    pathMappingsStatus.className = "pathMappingsStatus" + (type ? ` ${type}` : "");
+  }
+
+  function renderPathMappingsGrid(savedMappings) {
+    if (!pathMappingsGrid) return;
+    pathMappingsGrid.innerHTML = "";
+
+    for (const step of PATH_MAPPING_STEPS) {
+      const current = Array.isArray(savedMappings?.[step.key]) ? savedMappings[step.key] : DEFAULT_MAPPINGS[step.key];
+
+      const row = document.createElement("div");
+      row.className = "pathMappingRow";
+      row.dataset.stepKey = step.key;
+
+      const labelEl = document.createElement("div");
+      labelEl.className = "pathMappingLabel";
+      labelEl.innerHTML = `${step.label}<br/><span class="pathMappingLabelSub">${step.sub}</span>`;
+      row.appendChild(labelEl);
+
+      const inputsWrap = document.createElement("div");
+      inputsWrap.className = "pathMappingInputs";
+
+      function addInputRow(val) {
+        const inputRow = document.createElement("div");
+        inputRow.className = "pathMappingInputRow";
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.placeholder = "예: /item";
+        inp.value = val || "";
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "pathMappingRemoveBtn";
+        removeBtn.title = "삭제";
+        removeBtn.textContent = "×";
+        removeBtn.addEventListener("click", () => inputRow.remove());
+        inputRow.appendChild(inp);
+        inputRow.appendChild(removeBtn);
+        inputsWrap.insertBefore(inputRow, addBtn);
+      }
+
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "pathMappingAddBtn";
+      addBtn.textContent = "+ 경로 추가";
+      addBtn.addEventListener("click", () => addInputRow(""));
+      inputsWrap.appendChild(addBtn);
+
+      current.forEach(addInputRow);
+      row.appendChild(inputsWrap);
+      pathMappingsGrid.appendChild(row);
+    }
+  }
+
+  function collectPathMappings() {
+    const result = {};
+    if (!pathMappingsGrid) return result;
+    for (const step of PATH_MAPPING_STEPS) {
+      const row = pathMappingsGrid.querySelector(`[data-step-key="${step.key}"]`);
+      if (!row) continue;
+      const values = Array.from(row.querySelectorAll(".pathMappingInputRow input"))
+        .map((inp) => inp.value.trim())
+        .filter((v) => v.startsWith("/"));
+      result[step.key] = values.length ? values : DEFAULT_MAPPINGS[step.key];
+    }
+    return result;
+  }
+
+  async function openPathMappingsDialog() {
+    if (!pathMappingsDialog) return;
+    setPathMappingsStatus("");
+    const siteId = getCurrentSiteId();
+    try {
+      const r = await fetch(`/api/sites/${encodeURIComponent(siteId)}`);
+      const j = await r.json();
+      const savedMappings = j?.site?.journey_path_mappings || null;
+      renderPathMappingsGrid(savedMappings);
+    } catch {
+      renderPathMappingsGrid(null);
+    }
+    pathMappingsDialog.showModal();
+  }
+
+  async function savePathMappings() {
+    const siteId = getCurrentSiteId();
+    const mappings = collectPathMappings();
+    setPathMappingsStatus("저장 중…");
+    if (pathMappingsSaveBtn) pathMappingsSaveBtn.disabled = true;
+    try {
+      const r = await fetch(`/api/sites/${encodeURIComponent(siteId)}/journey-path-mappings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ journey_path_mappings: mappings }),
+      });
+      const j = await r.json();
+      if (!j?.ok) throw new Error(j?.reason || "저장 실패");
+      setPathMappingsStatus("저장 완료! 대시보드를 새로고침하면 반영됩니다.", "success");
+      setTimeout(() => pathMappingsDialog.close(), 1200);
+    } catch (e) {
+      setPathMappingsStatus(`오류: ${String(e)}`, "error");
+    } finally {
+      if (pathMappingsSaveBtn) pathMappingsSaveBtn.disabled = false;
+    }
+  }
+
+  if (pathMappingsBtn) pathMappingsBtn.addEventListener("click", openPathMappingsDialog);
+  if (pathMappingsSaveBtn) pathMappingsSaveBtn.addEventListener("click", savePathMappings);
+  if (pathMappingsCancelBtn) pathMappingsCancelBtn.addEventListener("click", () => pathMappingsDialog?.close());
+  if (pathMappingsCloseBtn) pathMappingsCloseBtn.addEventListener("click", () => pathMappingsDialog?.close());
+  if (pathMappingsDialog) {
+    pathMappingsDialog.addEventListener("click", (e) => {
+      if (e.target === pathMappingsDialog) pathMappingsDialog.close();
     });
   }
 

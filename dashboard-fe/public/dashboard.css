@@ -2817,3 +2817,165 @@ tr:hover td {
     font-size: 11px;
   }
 }
+
+/* ===== 경로 매핑 설정 다이얼로그 ===== */
+.pathMappingsDialog {
+  border: none;
+  border-radius: var(--radius-card, 12px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.pathMappingsDialog::backdrop {
+  background: rgba(0,0,0,0.45);
+}
+
+.pathMappingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  flex-shrink: 0;
+}
+.pathMappingsTitle {
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--font-display, sans-serif);
+}
+
+.pathMappingsBody {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pathMappingsDesc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary, #6b7280);
+  line-height: 1.6;
+}
+.pathMappingsDesc code {
+  background: var(--color-surface-muted, #f3f4f6);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+}
+
+.pathMappingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pathMappingRow {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.pathMappingLabel {
+  font-size: 13px;
+  font-weight: 600;
+  padding-top: 8px;
+  color: var(--color-text, #111);
+}
+.pathMappingLabelSub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.pathMappingInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pathMappingInputRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pathMappingInputRow input[type="text"] {
+  flex: 1;
+  border: 1px solid var(--color-border-input, #d1d5db);
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 13px;
+  font-family: var(--font-mono, monospace);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #111);
+}
+.pathMappingInputRow input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-interactive, #5b76fe);
+}
+
+.pathMappingAddBtn {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px dashed var(--color-border, #e5e7eb);
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+}
+.pathMappingAddBtn:hover {
+  border-color: var(--color-interactive, #5b76fe);
+  color: var(--color-interactive, #5b76fe);
+}
+
+.pathMappingRemoveBtn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.pathMappingRemoveBtn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.pathMappingsFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  flex-shrink: 0;
+}
+.pathMappingsStatus {
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+  flex: 1;
+}
+.pathMappingsStatus.error { color: #dc2626; }
+.pathMappingsStatus.success { color: #00b473; }
+.pathMappingsActions {
+  display: flex;
+  gap: 8px;
+}

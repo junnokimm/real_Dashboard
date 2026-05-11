@@ -737,3 +737,176 @@ iframe {
     width: auto;
   }
 }
+
+/* ===== 대상 선택 행 (select + 편집 버튼) ===== */
+.targetSelectRow {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  width: 100%;
+}
+.targetSelectRow select {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== 아이콘 버튼 ===== */
+.btnIcon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.btnIcon:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
+}
+
+/* ===== 경로 편집 모달 ===== */
+.targetsModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.targetsModalDialog {
+  background: #fff;
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.targetsModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.targetsModalTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.targetsModalBody {
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.targetsModalDesc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.targetsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.targetsTable th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.targetsTable th:first-child,
+.targetsTable td:first-child {
+  width: 36px;
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.targetsTable th:last-child,
+.targetsTable td:last-child {
+  width: 36px;
+  text-align: center;
+}
+
+.targetsTable td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--color-border-input);
+  vertical-align: middle;
+}
+
+.targetsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.targetsTable input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--color-border-input);
+  border-radius: 4px;
+  padding: 4px 7px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.targetsTable input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-interactive);
+}
+
+.targetsTable input[type="radio"] {
+  cursor: pointer;
+  accent-color: var(--color-interactive);
+}
+
+.targetsModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.targetsModalStatus {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+.targetsModalStatus.error { color: var(--color-danger, #e53935); }
+.targetsModalStatus.success { color: var(--color-success, #00b473); }
+
+.targetsModalActions {
+  display: flex;
+  gap: var(--space-2);
+}
