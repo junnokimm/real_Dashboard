@@ -46,7 +46,7 @@ async function computeSessionsFromJsonl(filePath, opts) {
 
 async function computeSessionSummaries(filePath, opts) {
   const sessions = await computeSessionsFromJsonl(filePath, opts);
-  return sessions.map((s) => summarizeSession(s)).filter(Boolean);
+  return sessions.map((s) => summarizeSession(s, { pathMappings: opts?.pathMappings })).filter(Boolean);
 }
 
 async function computeLabeledSessionSummaries(filePath, opts) {

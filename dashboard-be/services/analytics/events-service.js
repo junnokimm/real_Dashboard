@@ -1,4 +1,5 @@
 const { createFileEventStore } = require("../stores/event-store");
+const { inferStepFromEvent } = require("../../analytics/funnel");
 
 function createEventsService({ eventsFile, eventStore }) {
   const resolvedEventStore = eventStore || createFileEventStore({ eventsFile });
@@ -18,15 +19,20 @@ function createEventsService({ eventsFile, eventStore }) {
     return null;
   }
 
-  function inferJourneyStep(pathname, eventName) {
+  function inferJourneyStep(pathname, eventName, pathMappings) {
     const path = String(pathname || "");
     if (eventName === "checkout_complete") return "purchase";
-    if (path === "/" || path.startsWith("/home")) return "home";
-    if (path.startsWith("/collection") || path.startsWith("/category") || path.startsWith("/search")) return "browse";
-    if (path.startsWith("/detail") || path.startsWith("/product")) return "product";
-    if (path.startsWith("/cart")) return "cart";
-    if (path.startsWith("/checkout")) return "checkout";
-    if (path.startsWith("/order-complete")) return "purchase";
+
+    const mappings = (pathMappings && typeof pathMappings === "object") ? pathMappings : DEFAULT_PATH_MAPPINGS;
+
+    for (const step of JOURNEY_STEPS) {
+      const prefixes = Array.isArray(mappings[step.key]) ? mappings[step.key] : (DEFAULT_PATH_MAPPINGS[step.key] || []);
+      for (const prefix of prefixes) {
+        const p = String(prefix || "").trim();
+        if (!p) continue;
+        if (p === "/" ? path === "/" : path.startsWith(p)) return step.key;
+      }
+    }
     return null;
   }
 
@@ -67,7 +73,7 @@ function createEventsService({ eventsFile, eventStore }) {
       }));
   }
 
-  function buildJourneySummary(sessionTimeline) {
+  function buildJourneySummary(sessionTimeline, pathMappings) {
     const stepStats = JOURNEY_STEPS.map((step, index) => ({
       key: step.key,
       label: step.label,
@@ -86,7 +92,11 @@ function createEventsService({ eventsFile, eventStore }) {
         .slice()
         .sort((a, b) => a.ts - b.ts)
         .filter((item) => item.event_name === "page_view" || item.event_name === "checkout_complete")
-        .map((item) => inferJourneyStep(item.path, item.event_name))
+        .map((item) => {
+          const step = inferStepFromEvent({ event_name: item.event_name, path: item.path }, pathMappings);
+          // funnel.js는 "payment"를 쓰지만 JOURNEY_STEPS는 "purchase"를 사용
+          return step === "payment" ? "purchase" : step;
+        })
         .filter(Boolean);
 
       const uniqueSteps = [];
@@ -156,7 +166,7 @@ function createEventsService({ eventsFile, eventStore }) {
     return { status: "missing", label: "미수신", last_event_ts: lastEventTs, recent_events_5m: recentEvents5m };
   }
 
-  function getEventSummary({ siteId, page, fromTs, toTs }) {
+  function getEventSummary({ siteId, page, fromTs, toTs, pathMappings }) {
     const allSiteEvents = resolvedEventStore.readAll().filter((e) => {
       if (e.site_id !== siteId) return false;
       const ts = getEventTs(e);
@@ -232,7 +242,7 @@ function createEventsService({ eventsFile, eventStore }) {
       top_elements: topElements,
       page_flow: flow,
       trend: createTrendBuckets(filtered, fromTs, toTs),
-      journey: buildJourneySummary(sessionTimeline),
+      journey: buildJourneySummary(sessionTimeline, pathMappings),
       sdk_status: buildSdkStatus(siteEvents),
       funnel: {
         detail_page_view: detailPageViews,

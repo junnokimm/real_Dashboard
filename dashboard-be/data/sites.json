@@ -6,7 +6,7 @@
       "preview_base_url": "http://127.0.0.1:8080",
       "api_base_url": "http://127.0.0.1:3000",
       "target_generation": {
-        "mode": "hybrid",
+        "mode": "manual",
         "source": "nav_scan",
         "seed_paths": [
           "/",
@@ -34,7 +34,7 @@
       },
       "preview_targets": [
         {
-          "id": "home",
+          "id": "page",
           "label": "홈",
           "path": "/",
           "url_prefix": "/",
@@ -46,6 +46,7 @@
           "label": "컬렉션",
           "path": "/collection",
           "url_prefix": "/collection",
+          "default": false,
           "experiment_key": "exp_collection_cta_v1"
         },
         {
@@ -53,11 +54,20 @@
           "label": "체크아웃",
           "path": "/checkout",
           "url_prefix": "/checkout",
+          "default": false,
           "experiment_key": "exp_checkout_cta_v1"
+        },
+        {
+          "id": "product",
+          "label": "상품",
+          "path": "/product",
+          "url_prefix": "/product",
+          "default": false,
+          "experiment_key": "exp_product_cta_v1"
         }
       ],
       "inferred_preview_targets": [],
-      "inferred_targets_updated_at": 1778480468610
+      "inferred_targets_updated_at": 1778480459077
     },
     {
       "site_id": "test_site_011",

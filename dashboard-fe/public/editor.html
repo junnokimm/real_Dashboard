@@ -38,9 +38,12 @@
           <div class="panelSectionHead">대상 설정</div>
           <div class="fieldRow">
             <label class="fieldLabel">미리보기 URL</label>
-            <select id="targetSelect">
-              <option value="">불러오는 중…</option>
-            </select>
+            <div class="targetSelectRow">
+              <select id="targetSelect">
+                <option value="">불러오는 중…</option>
+              </select>
+              <button id="editTargetsBtn" class="btnIcon" type="button" title="경로 편집">&#9881;</button>
+            </div>
           </div>
           <div class="fieldRow">
             <label class="fieldLabel">실험 키</label>
@@ -252,6 +255,38 @@
       </div>
     </div>
   </section>
+
+  <!-- 경로 편집 모달 -->
+  <div id="targetsModal" class="targetsModalBackdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="targetsModalTitle">
+    <div class="targetsModalDialog">
+      <div class="targetsModalHeader">
+        <span id="targetsModalTitle" class="targetsModalTitle">미리보기 경로 편집</span>
+        <button id="targetsModalCloseBtn" class="btnIcon" type="button" title="닫기">&#10005;</button>
+      </div>
+      <div class="targetsModalBody">
+        <p class="targetsModalDesc">운영자 사이트의 실제 경로에 맞게 미리보기 경로를 등록하세요. 저장하면 에디터 드롭다운에 반영됩니다.</p>
+        <table class="targetsTable">
+          <thead>
+            <tr>
+              <th>기본</th>
+              <th>레이블</th>
+              <th>경로 (path)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="targetsTableBody"></tbody>
+        </table>
+        <button id="addTargetRowBtn" class="btnGhost btnBlock" type="button">+ 경로 추가</button>
+      </div>
+      <div class="targetsModalFooter">
+        <span id="targetsModalStatus" class="targetsModalStatus"></span>
+        <div class="targetsModalActions">
+          <button id="targetsModalCancelBtn" class="btnGhost" type="button">취소</button>
+          <button id="targetsModalSaveBtn" class="btnPrimary" type="button">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="/analytics-chat.js"></script>
   <script src="/editor.js"></script>

@@ -12,6 +12,7 @@ const { createChatOrchestrator } = require("../services/chat/chat-orchestrator")
 const { createLlmClient } = require("../services/llm");
 const { createFileExperimentStore } = require("../services/stores/experiment-store");
 const { createFileEventStore } = require("../services/stores/event-store");
+const { createFileSiteRegistryStore } = require("../services/stores/site-registry-store");
 const { createMetricsReadModel } = require("../services/read-models/metrics-read-model");
 
 function createChatRoutes({ files, middlewares = {} }) {
@@ -20,6 +21,7 @@ function createChatRoutes({ files, middlewares = {} }) {
   const requireSiteAccess = typeof middlewares.requireSiteAccess === "function" ? middlewares.requireSiteAccess : (_req, _res, next) => next();
   const experimentStore = createFileExperimentStore({ experimentsFile: files.experimentsFile });
   const eventStore = createFileEventStore({ eventsFile: files.eventsFile });
+  const siteRegistryStore = files.sitesFile ? createFileSiteRegistryStore({ sitesFile: files.sitesFile }) : null;
   const metricsReadModel = createMetricsReadModel({ eventStore, experimentStore });
 
   const experimentsService = createExperimentsService({ experimentsFile: files.experimentsFile, experimentStore });
@@ -66,7 +68,9 @@ function createChatRoutes({ files, middlewares = {} }) {
     const page = req.query.page ? String(req.query.page) : null;
     const fromTs = Number.isFinite(Number(req.query.from_ts)) ? Number(req.query.from_ts) : undefined;
     const toTs = Number.isFinite(Number(req.query.to_ts)) ? Number(req.query.to_ts) : undefined;
-    return res.json(eventsService.getEventSummary({ siteId, page, fromTs, toTs }));
+    const rawSite = siteRegistryStore ? siteRegistryStore.getRawById(siteId) : null;
+    const pathMappings = rawSite?.journey_path_mappings || null;
+    return res.json(eventsService.getEventSummary({ siteId, page, fromTs, toTs, pathMappings }));
   });
 
   router.get("/chat-issues-summary", requireAuth, requireSiteAccess, (req, res) => {

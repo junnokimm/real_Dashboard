@@ -733,6 +733,7 @@ function normalizeSite(site) {
     target_generation,
     inferred_targets_updated_at: Number.isFinite(Number(site.inferred_targets_updated_at)) ? Number(site.inferred_targets_updated_at) : null,
     preview_targets,
+    journey_path_mappings: (site.journey_path_mappings && typeof site.journey_path_mappings === "object") ? site.journey_path_mappings : null,
   };
 }
 function listSites() {
@@ -970,6 +971,58 @@ app.post("/api/sites/:siteId/preview-targets/refresh", requireAuth, requireSiteA
   const site = await ensureSiteInference(String(req.params.siteId || "").trim(), { force: true });
   if (!site) return res.status(404).json({ ok: false, reason: "site not found" });
   return res.json({ ok: true, site_id: site.site_id, preview_targets: site.preview_targets, refreshed_at: Date.now() });
+});
+
+app.patch("/api/sites/:siteId/journey-path-mappings", requireAuth, requireSiteAccess, (req, res) => {
+  const mappings = req.body?.journey_path_mappings;
+  if (!mappings || typeof mappings !== "object" || Array.isArray(mappings)) {
+    return res.status(400).json({ ok: false, reason: "journey_path_mappings must be an object" });
+  }
+
+  const ALLOWED_KEYS = ["home", "browse", "product", "cart", "checkout", "purchase"];
+  const sanitized = {};
+  for (const key of ALLOWED_KEYS) {
+    if (Array.isArray(mappings[key])) {
+      sanitized[key] = mappings[key].map((p) => String(p || "").trim()).filter(Boolean);
+    }
+  }
+
+  const next = siteRegistryStore.patchRawById(req.authorizedSiteId, (current) => ({
+    ...current,
+    journey_path_mappings: sanitized,
+  }));
+
+  if (!next) return res.status(404).json({ ok: false, reason: "site not found" });
+  return res.json({ ok: true, journey_path_mappings: next.journey_path_mappings });
+});
+
+app.put("/api/sites/:siteId/preview-targets", requireAuth, requireSiteAccess, (req, res) => {
+  const targets = req.body?.preview_targets;
+  if (!Array.isArray(targets)) {
+    return res.status(400).json({ ok: false, reason: "preview_targets must be an array" });
+  }
+
+  const normalized = targets.map((t, i) => {
+    const path = String(t?.path || "/").trim() || "/";
+    const id = String(t?.id || slugify(path.split("/").filter(Boolean)[0] || "page") || `target-${i + 1}`).trim();
+    const label = String(t?.label || path).trim() || path;
+    const url_prefix = String(t?.url_prefix || path.split("?")[0]).trim() || "/";
+    const experiment_key = String(t?.experiment_key || buildExperimentKeyForPath(path)).trim();
+    return { id, label, path, url_prefix, default: Boolean(t?.default), experiment_key };
+  });
+
+  if (normalized.length > 0 && !normalized.some((t) => t.default)) {
+    normalized[0].default = true;
+  }
+
+  const next = siteRegistryStore.patchRawById(req.authorizedSiteId, (current) => ({
+    ...current,
+    preview_targets: normalized,
+    target_generation: { ...(current.target_generation || {}), mode: "manual" },
+  }));
+
+  if (!next) return res.status(404).json({ ok: false, reason: "site not found" });
+  return res.json({ ok: true, site: normalizeSite(next) });
 });
 
 async function proxyPreviewRequest(req, res) {
@@ -1231,12 +1284,14 @@ app.get("/api/sessions", requireAuth, requireSiteAccess, async (req, res) => {
   const limit_events = Math.max(100, Math.min(200_000, toInt(req.query.limit_events) ?? 50_000));
 
   try {
+    const pathMappings = siteRegistryStore.getRawById(site_id)?.journey_path_mappings || null;
     const labeled = await computeLabeledSessionSummaries(EVENTS_FILE, {
       site_id,
       from_ts,
       to_ts,
       limit_events,
-      session_ttl_ms: 30 * 60 * 1000
+      session_ttl_ms: 30 * 60 * 1000,
+      pathMappings,
     });
 
     const sessions = labeled
@@ -1259,12 +1314,14 @@ app.get("/api/labels/summary", requireAuth, requireSiteAccess, async (req, res) 
   const limit_events = Math.max(100, Math.min(200_000, toInt(req.query.limit_events) ?? 100_000));
 
   try {
+    const pathMappings = siteRegistryStore.getRawById(site_id)?.journey_path_mappings || null;
     const labeled = await computeLabeledSessionSummaries(EVENTS_FILE, {
       site_id,
       from_ts,
       to_ts,
       limit_events,
-      session_ttl_ms: 30 * 60 * 1000
+      session_ttl_ms: 30 * 60 * 1000,
+      pathMappings,
     });
 
     const summary = computeLabelsSummary(labeled);
@@ -1285,12 +1342,14 @@ app.get("/api/insights", requireAuth, requireSiteAccess, async (req, res) => {
   const include_prompt = String(req.query.include_prompt || "") === "1";
 
   try {
+    const pathMappings = siteRegistryStore.getRawById(site_id)?.journey_path_mappings || null;
     const labeled = await computeLabeledSessionSummaries(EVENTS_FILE, {
       site_id,
       from_ts,
       to_ts,
       limit_events,
-      session_ttl_ms: 30 * 60 * 1000
+      session_ttl_ms: 30 * 60 * 1000,
+      pathMappings,
     });
 
     const input = buildInsightsInput(site_id, labeled, { perLabelRepresentatives: reps });
@@ -1315,6 +1374,7 @@ app.use(
     files: {
       experimentsFile: EXP_FILE,
       eventsFile: EVENTS_FILE,
+      sitesFile: SITES_FILE,
       productsFile: PRODUCTS_FILE,
       faqFile: FAQ_FILE,
       policiesFile: POLICIES_FILE,

@@ -147,7 +147,7 @@ function summarizeSession(session, opts) {
     if (e.event_name === "checkout_complete") checkout_complete = true;
     if (e.event_name === "checkout_start") checkout_entered = true;
 
-    const step = inferStepFromEvent(e);
+    const step = inferStepFromEvent(e, opts?.pathMappings);
     steps.push(step);
     if (step === "checkout" || step === "payment") checkout_entered = true;
   }
