@@ -10,10 +10,10 @@ body {
   line-height: 1.5;
   letter-spacing: -0.01em;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-page);
   background-image:
-    radial-gradient(ellipse 120% 80% at 100% 0%, rgba(195, 250, 245, 0.45), transparent 50%),
-    radial-gradient(ellipse 90% 70% at 0% 100%, rgba(253, 224, 240, 0.5), transparent 55%);
+    radial-gradient(ellipse 120% 80% at 100% 0%, var(--theme-gradient-a), transparent 50%),
+    radial-gradient(ellipse 90% 70% at 0% 100%, var(--theme-gradient-b), transparent 55%);
 }
 
 .loginPage {

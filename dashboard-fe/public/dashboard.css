@@ -9,7 +9,7 @@ body {
   line-height: 1.6;
   letter-spacing: -0.01em;
   color: var(--color-text);
-  background: #f7f8fa;
+  background: var(--color-page);
   min-height: 100vh;
 }
 
@@ -20,7 +20,7 @@ body {
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
-  background: #fff;
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-input);
   position: sticky;
   top: 0;
@@ -123,7 +123,7 @@ body {
 .selectInput {
   appearance: auto;
   border: 1px solid var(--color-border);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--radius-btn);
   padding: 7px 12px;
@@ -136,7 +136,7 @@ body {
 
 .dateInput {
   border: 1px solid var(--color-border);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--radius-btn);
   padding: 7px 12px;
@@ -245,10 +245,24 @@ body {
 }
 
 .summaryCard {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-card);
   padding: var(--space-5);
   border: 1px solid var(--color-border-input);
+}
+
+html[data-theme="midnight"] .dashboardShell {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(91, 118, 254, 0.18), transparent 34%),
+    radial-gradient(circle at 88% 4%, rgba(0, 180, 115, 0.12), transparent 30%),
+    var(--color-page);
+}
+
+html[data-theme="sage"] .dashboardShell {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(47, 125, 91, 0.14), transparent 32%),
+    radial-gradient(circle at 90% 10%, rgba(245, 177, 87, 0.2), transparent 34%),
+    var(--color-page);
 }
 
 .summaryCard.accent {

@@ -24,12 +24,15 @@
 }
 
 :root {
+  color-scheme: light;
   --color-text: #1c1c1e;
   --color-text-secondary: #555a6a;
   --color-placeholder: #a5a8b5;
+  --color-page: #f7f8fa;
   --color-surface: #ffffff;
   --color-surface-elevated: #fafbfc;
   --color-surface-muted: #f4f5f8;
+  --color-surface-glass: rgba(255, 255, 255, 0.82);
   --color-border: #c7cad5;
   --color-border-input: #e9eaef;
   --color-ring: rgb(224, 226, 232);
@@ -45,6 +48,12 @@
   --pastel-orange: #ffe6cd;
   --pastel-pink: #fde0f0;
   --pastel-yellow-dark: #746019;
+  --theme-gradient-a: rgba(195, 250, 245, 0.45);
+  --theme-gradient-b: rgba(253, 224, 240, 0.5);
+  --theme-accent-soft: rgba(91, 118, 254, 0.1);
+  --theme-success-soft: rgba(0, 180, 115, 0.1);
+  --theme-danger-border: rgba(196, 30, 30, 0.35);
+  --theme-shadow-card: 0 18px 45px rgba(28, 28, 30, 0.08);
   --radius-btn: 8px;
   --radius-input: 8px;
   --radius-card: 16px;
@@ -61,4 +70,194 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+}
+
+html[data-theme="midnight"] {
+  color-scheme: dark;
+  --color-text: #eef3ff;
+  --color-text-secondary: #aab6cf;
+  --color-placeholder: #6f7b93;
+  --color-page: #090d16;
+  --color-surface: #111827;
+  --color-surface-elevated: #172033;
+  --color-surface-muted: #1f2a3d;
+  --color-surface-glass: rgba(17, 24, 39, 0.86);
+  --color-border: #344057;
+  --color-border-input: #273249;
+  --color-ring: rgba(126, 151, 255, 0.24);
+  --color-interactive: #87a1ff;
+  --color-interactive-hover: #a2b5ff;
+  --color-interactive-pressed: #657cff;
+  --color-success: #4dd4a3;
+  --color-danger: #ff8f8f;
+  --color-danger-surface: rgba(255, 143, 143, 0.14);
+  --pastel-coral: #5b2b34;
+  --pastel-teal: #173f44;
+  --pastel-teal-dark: #80f0de;
+  --pastel-orange: #47331f;
+  --pastel-pink: #44273a;
+  --pastel-yellow-dark: #f3ca68;
+  --theme-gradient-a: rgba(91, 118, 254, 0.2);
+  --theme-gradient-b: rgba(0, 180, 115, 0.13);
+  --theme-accent-soft: rgba(135, 161, 255, 0.16);
+  --theme-success-soft: rgba(77, 212, 163, 0.14);
+  --theme-danger-border: rgba(255, 143, 143, 0.32);
+  --theme-shadow-card: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="sage"] {
+  color-scheme: light;
+  --color-text: #17211b;
+  --color-text-secondary: #536357;
+  --color-placeholder: #96a49a;
+  --color-page: #f3f6ef;
+  --color-surface: #fffdf7;
+  --color-surface-elevated: #f9f6ec;
+  --color-surface-muted: #ebf1e7;
+  --color-surface-glass: rgba(255, 253, 247, 0.86);
+  --color-border: #bac8b8;
+  --color-border-input: #dfe7dc;
+  --color-ring: rgba(55, 109, 83, 0.18);
+  --color-interactive: #2f7d5b;
+  --color-interactive-hover: #25694c;
+  --color-interactive-pressed: #174831;
+  --color-success: #27885e;
+  --color-danger: #b94132;
+  --color-danger-surface: #f7d7d2;
+  --pastel-coral: #ffd5be;
+  --pastel-teal: #d7efe6;
+  --pastel-teal-dark: #246b59;
+  --pastel-orange: #f7e5bf;
+  --pastel-pink: #f4dce5;
+  --pastel-yellow-dark: #765d18;
+  --theme-gradient-a: rgba(47, 125, 91, 0.18);
+  --theme-gradient-b: rgba(245, 177, 87, 0.24);
+  --theme-accent-soft: rgba(47, 125, 91, 0.12);
+  --theme-success-soft: rgba(39, 136, 94, 0.12);
+  --theme-danger-border: rgba(185, 65, 50, 0.32);
+  --theme-shadow-card: 0 18px 45px rgba(47, 74, 56, 0.12);
+}
+
+html[data-theme] body {
+  background: var(--color-page);
+  color: var(--color-text);
+}
+
+html[data-theme] .topbar,
+html[data-theme] .dashboardSidebar,
+html[data-theme] .panel,
+html[data-theme] .card,
+html[data-theme] .summaryCard,
+html[data-theme] .loginCard,
+html[data-theme] dialog,
+html[data-theme] .modalCard,
+html[data-theme] .experimentSummaryCard,
+html[data-theme] .summaryMiniCard,
+html[data-theme] .trendChartCard,
+html[data-theme] .infoCard,
+html[data-theme] .fieldCard,
+html[data-theme] .choiceCard,
+html[data-theme] .changeItem,
+html[data-theme] .logBox,
+html[data-theme] .previewPane {
+  background: var(--color-surface);
+  border-color: var(--color-border-input);
+  color: var(--color-text);
+}
+
+html[data-theme] .card,
+html[data-theme] .summaryCard,
+html[data-theme] .loginCard,
+html[data-theme] .experimentSummaryCard {
+  box-shadow: var(--theme-shadow-card);
+}
+
+html[data-theme] input,
+html[data-theme] select,
+html[data-theme] textarea,
+html[data-theme] .selectInput,
+html[data-theme] .dateInput {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+html[data-theme] input::placeholder,
+html[data-theme] textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+html[data-theme] .btnGhost,
+html[data-theme] .btn,
+html[data-theme] .btnToggle,
+html[data-theme] .seg,
+html[data-theme] .segBtn {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+html[data-theme] .btnGhost:hover,
+html[data-theme] .btn:hover,
+html[data-theme] .segBtn:hover,
+html[data-theme] .sidebarLink:hover {
+  background: var(--color-surface-muted);
+}
+
+html[data-theme] .segBtn.active,
+html[data-theme] .btnToggle.is-on,
+html[data-theme] .sidebarLink.is-active,
+html[data-theme] .badge.label,
+html[data-theme] .sdkStatusBadge.normal {
+  background: var(--theme-success-soft);
+  color: var(--pastel-teal-dark);
+}
+
+html[data-theme] .summaryCard.accent,
+html[data-theme] .sdkStatusBadge.missing {
+  border-color: var(--theme-danger-border);
+}
+
+html[data-theme] .loginPage {
+  background-image:
+    radial-gradient(ellipse 120% 80% at 100% 0%, var(--theme-gradient-a), transparent 50%),
+    radial-gradient(ellipse 90% 70% at 0% 100%, var(--theme-gradient-b), transparent 55%);
+}
+
+html[data-theme] .themeSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-glass);
+  box-shadow: var(--shadow-ring);
+  backdrop-filter: blur(16px);
+}
+
+html[data-theme] .themeSwitcherLabel {
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+html[data-theme] .themeSwitcherSelect {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loginCard .themeSwitcher {
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
 }
